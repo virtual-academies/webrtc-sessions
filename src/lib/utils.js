@@ -9,6 +9,10 @@ export function log() {
   console.log(...arguments)
 }
 
+export function stack() {
+  return new Error().stack
+}
+
 /*
  * Returns current UTC timestamp adjusted for timezone
  */
@@ -66,14 +70,16 @@ export const attachAudioAnalyser = (stream, callback) => {
   }
 
   audioContext.onstatechange = () => {
-    if (audioCtx.state == 'closed') {
-      microphone.disconnect(analyser)
-      analyser.disconnect(processor)
-      processor.disconnect(audioContext.destination)
+    if (audioContext.state == 'closed') {
+      microphone.disconnect()
+      analyser.disconnect()
+      processor.disconnect()
       processor.onaudioprocess = null
       callback(0)
     }
   }
+
+  return audioContext
 }
 
 export const disableVideoTrack = (stream) => {
