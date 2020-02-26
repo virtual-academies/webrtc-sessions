@@ -68,6 +68,7 @@ class Connection {
     this.connection.onsignalingstatechange = this.onSignalingStateChange.bind(this)
     this.connection.ondatachannel = this.onDataChannel.bind(this)
     this.connection.ontrack = this.onTrack.bind(this)
+    this.openDataChannel()
     this.trigger('connect', this.clientId)
   }
 
@@ -261,7 +262,8 @@ class Connection {
   }
 
   onMessage(event) {
-    this.trigger('data', this.clientId, event.data)
+    const data = JSON.parse(event.data)
+    this.trigger('data', this.clientId, data)
   }
 
   onError(err) {
@@ -273,7 +275,7 @@ class Connection {
   }
 
   send(data) {
-    if(this.status == 'ready') {
+    if(this.status == 'open') {
       if(this.channel.readyState == 'open') {
         this.channel.send(JSON.stringify(data))
       }

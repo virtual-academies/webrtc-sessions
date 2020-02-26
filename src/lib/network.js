@@ -56,6 +56,14 @@ class Network {
     }
   }
 
+  sendData(data) {
+    Object.keys(this.connections).forEach(clientId => {
+      this.connections[clientId].send(Object.assign(data, {
+        clientId: this.clientId
+      }))
+    })
+  }
+
   /*
    * https://www.w3.org/TR/websockets/
    */
@@ -205,6 +213,7 @@ class Network {
       this.connections[clientId].on('disconnect', () => this.onDisconnect(clientId))
       this.connections[clientId].on('fail', () => this.onFail(clientId))
       this.connections[clientId].on('stream', () => this.onStream(clientId))
+      this.connections[clientId].on('data', this.onData.bind(this))
       this.connections[clientId].connect()
     }
   }
@@ -291,6 +300,10 @@ class Network {
       this.checkAudio()
       this.trackAudio()
     }, this.audioDelay)
+  }
+
+  onData(clientId, data) {
+    this.trigger('data', data)
   }
 }
 
