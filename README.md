@@ -1,9 +1,31 @@
 
+# Sessions
 
+Pure JS WebRTC library for peer-to-peer (P2P) live streaming and data communication.
 
-[WebSocket.in](https://www.websocket.in/)
+## WebRTC
 
-The open and free WebSocket server for all.
+[WebRTC](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API) (Web Real-Time Communication) is a technology which enables Web applications
+and sites to capture and optionally stream audio and/or video media, as well as to exchange arbitrary data between browsers without requiring an
+intermediary. The set of standards that comprise WebRTC makes it possible to share data and perform teleconferencing peer-to-peer, without requiring
+that the user installs plug-ins or any other third-party software.
 
-Sessions-Demo
-eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImp0aSI6IjI4YWMzYTBlYTI0ODViODYzMWFiODU5OTU3OWI3OWM5NTgyZTE2ZWZhYWRjM2NhZDAxZjE2ZjIzYTFiNmIyMDQ1NDY2OTBkYmU0MmIzNzU3In0.eyJhdWQiOiI4IiwianRpIjoiMjhhYzNhMGVhMjQ4NWI4NjMxYWI4NTk5NTc5Yjc5Yzk1ODJlMTZlZmFhZGMzY2FkMDFmMTZmMjNhMWI2YjIwNDU0NjY5MGRiZTQyYjM3NTciLCJpYXQiOjE1ODE2NzMyMDgsIm5iZiI6MTU4MTY3MzIwOCwiZXhwIjoxNjEzMjk1NjA4LCJzdWIiOiI1MDYiLCJzY29wZXMiOltdfQ.J5hRpPFG5mfBmQpOrORwP8Uz2yqAxnLCsrYN2XwzxT76usPEv6vnGe5hsbLleIqEcQtSCYwv2yzR1oki4W_6RERDkDWh5bo_Qs0MQbqBmsXDJ2diuMsHdr6L4zLZyUre4L3BxWSOtr3C8nrabLOxsn66aB9uvY6iBQlHzXy-vHw5hzo6sga3dJZTbr3S4156Xtzq9XchYky793jgS4cVdyB3J8-vvYFG0jn-Vic-5_5a42n1qC1ywQ1EWzkbZYTxOlSeu2NB2irVarfTIg1eIQwQKwl_9XfpYcNVwYTQAxGw_XqhLYkixAGPLX0Euevx9jOvsboBJi8R9lZMFT67HtWrrwODgBh6N3yzksTKuRmC5vNB-QTlRzVbIyexU-OkBY8-FjrjQlqHKeC1ILOkHIkVHk51GmjJMWGehSCE_JFnqJiOn_QX2H2LP4H_mPUPqmGONT_0g39AxGOjaa5Q-OjnQxKrXvXwIgqsCTX-OVWgimSzTBlj9Rnc8G9Hadlgix7IO5SAiKwHcBOvBsbbTCiQF-M27qryMDT1DXtM1rYdOMaWRo98Kk_wcanTH-QIY3YgrlG5XQIQE0NBQp217-qe3LZeaoD-Vn8DH9w2iLDQqfZxxqjl1eEZc3NWaLxMzsGFmanCiPGacEsmINJzLJC8hg8_aIWnHQ5-iXdq2RU
+### Cross-platform shim
+
+[WebRTC-Adaptor](https://github.com/webrtcHacks/adapter) is a shim used to insulate apps from spec changes and prefix differences.
+In fact, the standards and protocols used for WebRTC implementations are highly stable, but there are a few notable differences across platforms
+and browsers. For full interop information, see [webrtc.org/web-apis/interop](https://www.webrtc.org/web-apis/interop).
+
+## Installation
+
+### Web Socket
+
+A web socket, or similar, full-duplex communication channel is required for WebRTC signaling.
+
+[WebSocket.in](https://www.websocket.in/) provides an open and free WebSocket server for all.
+
+## License
+
+This package is licensed under Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0).
+
+Full license text can be found [here](https://creativecommons.org/licenses/by-nc/4.0/).
