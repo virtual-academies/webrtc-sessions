@@ -220,9 +220,7 @@ class Network {
 
   onConnect(clientId) {
     log('connected to', clientId)
-    if(this.stream) {
-      this.connections[clientId].addStream(this.stream)
-    }
+    if(this.stream) this.connections[clientId].addStream(this.stream)
     this.trigger('connect', clientId)
   }
 
@@ -263,7 +261,11 @@ class Network {
 
   stopStreaming() {
     this.stream.getTracks().forEach(track => track.stop())
-    this.disconnect()
+    Object.keys(this.connections).forEach(clientId => {
+      this.connections[clientId].removeStream()
+      this.connections[clientId].clearStream()
+    })
+    //this.disconnect()
   }
 
   isStreaming() {

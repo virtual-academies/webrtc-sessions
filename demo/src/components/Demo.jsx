@@ -15,8 +15,6 @@ import Loader from './Loader'
 import Conference from './Conference'
 import Chat from './Chat'
 
-// import { ACCESS_TOKEN } from '../config'
-
 import styles from '../assets/index.css'
 
 let session = null
@@ -54,8 +52,6 @@ function Demo({ children }) {
       dispatch({ type: 'update', clientId, stream })
     })
 
-    // const CHANNEL_ID = 1 // positive integer between 1-10000.
-    // socket = new WebSocket('wss://connect.websocket.in/v2/'+CHANNEL_ID+'?token='+ACCESS_TOKEN)
     socket = new WebSocket('ws://localhost:8080')
 
     const { onOpen, onError, onMessage, onClose } = session.connect(message => {

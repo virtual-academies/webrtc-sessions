@@ -235,10 +235,23 @@ class Connection {
   onTrack(event) {
     log('received track from', this.clientId)
     this.stream = event.streams[0]
+    this.stream.onremovetrack = this.removeStream.bind(this)
     this.audioContext = attachAudioAnalyser(this.stream, audioLevel => {
       this.audioLevel = audioLevel
     })
     this.trigger('stream', this.clientId)
+  }
+
+  removeStream() {
+    if(this.stream) {
+      if(this.audioContext) {
+        this.audioContext.close()
+        this.audioContext = null
+      }
+      this.stream.onremovetrack = null
+      this.stream = null
+      this.trigger('stream', this.clientId)
+    }
   }
 
   openDataChannel() {
@@ -285,13 +298,17 @@ class Connection {
   addStream(stream) {
     if(this.isStable()) {
       log('adding stream to connection with', this.clientId)
-      this.connection.getSenders().forEach(sender => {
-        this.connection.removeTrack(sender)
-      })
+      this.clearStream()
       stream.getTracks().forEach(track => {
         this.connection.addTrack(track, stream)
       })
     }
+  }
+
+  clearStream() {
+    this.connection.getSenders().forEach(sender => {
+      this.connection.removeTrack(sender)
+    })
   }
 
   isStable() {

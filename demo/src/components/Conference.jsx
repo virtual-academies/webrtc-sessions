@@ -49,6 +49,13 @@ function Conference({ children, session, clients }) {
         localVideo.current.srcObject = stream
       })
 
+      session.on('remote', (clientId, stream) => {
+        if(clientId == mainClientId && !stream) {
+          mainVideo.current.srcObject = null
+          mainClientId = null
+        }
+      })
+
       session.on('disconnect', clientId => {
         if(mainClientId == clientId) {
           mainVideo.current.srcObject = null
@@ -66,6 +73,17 @@ function Conference({ children, session, clients }) {
     }
 
   }, [ session ])
+
+  useEffect(() => {
+
+    if(clients.length == 1) {
+      if(clients[0].stream) {
+        mainVideo.current.srcObject = clients[0].stream
+        mainClientId = clients[0].clientId
+      }
+    }
+
+  }, [ clients ])
 
   const toggleStream = () => {
     if (!isStreaming) {
