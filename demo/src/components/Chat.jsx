@@ -49,7 +49,7 @@ function Chat({ children, session, clients }) {
             timeStamp: Date.now(),
             type: 'new'
           }
-          session.sendData(data)
+          session.broadcast(data)
           dispatch(data)
           input.current.value = null
         }

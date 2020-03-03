@@ -56,7 +56,7 @@ class Network {
     }
   }
 
-  sendData(data) {
+  broadcast(data) {
     Object.keys(this.connections).forEach(clientId => {
       this.connections[clientId].send(Object.assign(data, {
         clientId: this.clientId
@@ -130,7 +130,9 @@ class Network {
       case 'ice': this.ice(message); break
       case 'rollback': this.rollback(message); break
       case 'leave': this.leave(message); break
-      default: log('unexpected message type', message.type); break
+      default:
+        this.trigger(message.type, message);
+        break
     }
   }
 
