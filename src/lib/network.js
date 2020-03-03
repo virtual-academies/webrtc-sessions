@@ -212,6 +212,7 @@ class Network {
       log('opening to', type, clientId)
       this.connections[clientId] = new Connection(this, clientId, type, timeStamp, this.config.connection)
       this.connections[clientId].on('connect', () => this.onConnect(clientId))
+      this.connections[clientId].on('open', () => this.onReady(clientId))
       this.connections[clientId].on('disconnect', () => this.onDisconnect(clientId))
       this.connections[clientId].on('fail', () => this.onFail(clientId))
       this.connections[clientId].on('stream', () => this.onStream(clientId))
@@ -224,6 +225,10 @@ class Network {
     log('connected to', clientId)
     if(this.stream) this.connections[clientId].addStream(this.stream)
     this.trigger('connect', clientId)
+  }
+
+  onReady(clientId) {
+    this.trigger('ready', clientId)
   }
 
   onDisconnect(clientId) {
