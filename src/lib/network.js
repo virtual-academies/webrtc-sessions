@@ -131,7 +131,7 @@ class Network {
       case 'rollback': this.rollback(message); break
       case 'leave': this.leave(message); break
       default:
-        this.trigger(message.type, message);
+        log('unexpected message type', message.type)
         break
     }
   }
