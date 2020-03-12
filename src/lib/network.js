@@ -112,11 +112,10 @@ class Network {
    */
   onMessage(message) {
 
-    if(typeof(message) == 'object') {
-      message = message.data
+    if(typeof(message) == 'string') {
+      message = JSON.parse(message)
     }
 
-    message = JSON.parse(message)
     if(message.clientId == this.clientId) return
     if(message.peerId && message.peerId != this.clientId) return
 
