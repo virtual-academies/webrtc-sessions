@@ -6,9 +6,10 @@ import { log, getTime } from './utils'
 
 class Network {
 
-  constructor(clientId, config) {
+  constructor(clientId, username, config) {
     log('session started as', clientId)
     this.clientId = clientId
+    this.username = username
     this.timeStamp = getTime()
     this.connected = false
     this.sendCallback = null
@@ -93,6 +94,7 @@ class Network {
   reconnect() {
     this.send({
       timeStamp: this.timeStamp,
+      username: this.username,
       type: 'join'
     })
   }
@@ -103,6 +105,7 @@ class Network {
   onOpen() {
     this.send({
       timeStamp: this.timeStamp,
+      username: this.username,
       type: 'join'
     })
   }
@@ -149,26 +152,27 @@ class Network {
     log('socket connection closed')
   }
 
-  open(clientId, timeStamp) {
+  open(clientId, username, timeStamp) {
     if(clientId < this.clientId) {
-      this.openConnection(clientId, 'answer', timeStamp)
+      this.openConnection(clientId, username, 'answer', timeStamp)
     } else {
-      this.openConnection(clientId, 'offer', timeStamp)
+      this.openConnection(clientId, username, 'offer', timeStamp)
     }
   }
 
-  join({ clientId, timeStamp }) {
-    this.open(clientId, timeStamp)
+  join({ clientId, timeStamp, username }) {
+    this.open(clientId, username, timeStamp)
     this.send({
       peerId: clientId,
       timeStamp: this.timeStamp,
+      username: this.username,
       type: 'peer'
     })
   }
 
-  peer({ clientId, timeStamp }) {
+  peer({ clientId, timeStamp, username }) {
     if(!this.connections[clientId]) {
-      this.open(clientId, timeStamp)
+      this.open(clientId, username, timeStamp)
     } else if(this.stream) {
       this.connections[clientId].onNegotiationNeeded()
     }
@@ -204,12 +208,12 @@ class Network {
     }
   }
 
-  openConnection(clientId, type, timeStamp) {
+  openConnection(clientId, username, type, timeStamp) {
     if(this.connections[clientId]) {
       this.connections[clientId].reconnect()
     } else {
       log('opening to', type, clientId)
-      this.connections[clientId] = new Connection(this, clientId, type, timeStamp, this.config.connection)
+      this.connections[clientId] = new Connection(this, clientId, username, type, timeStamp, this.config.connection)
       this.connections[clientId].on('connect', () => this.onConnect(clientId))
       this.connections[clientId].on('open', () => this.onReady(clientId))
       this.connections[clientId].on('disconnect', () => this.onDisconnect(clientId))
@@ -220,10 +224,10 @@ class Network {
     }
   }
 
-  onConnect(clientId) {
+  onConnect(clientId, username) {
     log('connected to', clientId)
     if(this.stream) this.connections[clientId].addStream(this.stream)
-    this.trigger('connect', clientId)
+    this.trigger('connect', clientId, username)
   }
 
   onReady(clientId) {

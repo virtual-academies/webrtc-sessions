@@ -63,7 +63,9 @@ function Demo({ children }) {
       onOpen()
     })
 
-    socket.addEventListener('message', onMessage)
+    socket.addEventListener('message', message => {
+      onMessage(message.data)
+    })
     socket.addEventListener('error', onError)
     socket.addEventListener('close', onClose)
 

@@ -13,9 +13,10 @@ import {
 
 class Connection {
 
-  constructor(network, clientId, type, timeStamp, config={}) {
+  constructor(network, clientId, username, type, timeStamp, config={}) {
     this.network = network
     this.clientId = clientId
+    this.username = username
     this.type = type
     this.timeStamp = timeStamp
     this.status = 'new'
@@ -69,7 +70,7 @@ class Connection {
     this.connection.ondatachannel = this.onDataChannel.bind(this)
     this.connection.ontrack = this.onTrack.bind(this)
     this.openDataChannel()
-    this.trigger('connect', this.clientId)
+    this.trigger('connect', this.clientId, this.username)
   }
 
   disconnect() {
