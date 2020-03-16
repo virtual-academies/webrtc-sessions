@@ -131,6 +131,7 @@ class Connection {
       this.network.send({
         peerId: this.clientId,
         timeStamp: this.network.timeStamp,
+        username: this.network.username,
         type: 'peer'
       })
     }
