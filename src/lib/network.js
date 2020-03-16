@@ -214,7 +214,7 @@ class Network {
     } else {
       log('opening to', type, clientId)
       this.connections[clientId] = new Connection(this, clientId, username, type, timeStamp, this.config.connection)
-      this.connections[clientId].on('connect', () => this.onConnect(clientId))
+      this.connections[clientId].on('connect', () => this.onConnect.bind(this))
       this.connections[clientId].on('open', () => this.onReady(clientId))
       this.connections[clientId].on('disconnect', () => this.onDisconnect(clientId))
       this.connections[clientId].on('fail', () => this.onFail(clientId))
