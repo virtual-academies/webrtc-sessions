@@ -1,11 +1,15 @@
 
 'use strict'
 
+import classNames from 'classnames'
+
 import React, {
   useState,
   useEffect,
   useRef
 } from 'react'
+
+import Peers from './Peers'
 
 import styles from '../assets/conference.css'
 
@@ -40,6 +44,7 @@ function Conference({ children, session, clients }) {
   const [ isStreaming, toggleStreaming ] = useState(false)
   const [ enableVideo, toggleVideo ] = useState(true)
   const [ enableAudio, toggleAudio ] = useState(true)
+  const [ peersHidden, hidePeers ] = useState(true)
 
   useEffect(() => {
 
@@ -130,6 +135,10 @@ function Conference({ children, session, clients }) {
           </span>
           <span className={styles.action}>
             <button className={enableAudio ? styles.audioOn : styles.audioOff} onClick={onChangeAudio} />
+          </span>
+          <span className={classNames(styles.action, styles.right)}>
+            <button className={styles.users} onClick={() => hidePeers(!peersHidden)} />
+            <Peers session={session} clients={clients} hidden={peersHidden} hidePeers={hidePeers} />
           </span>
         </div>
       </div>

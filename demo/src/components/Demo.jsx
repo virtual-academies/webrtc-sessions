@@ -24,9 +24,11 @@ let mainClientId = null
 const clientsReducer = (clients, action) => {
   const index = clients.findIndex(val => val.clientId == action.clientId)
   if(action.type == 'add' && index < 0) {
-    clients.push({ clientId: action.clientId })
-  } else if(action.type == 'update' && index >= 0) {
+    clients.push({ clientId: action.clientId, username: action.username })
+  } else if(action.type == 'stream' && index >= 0) {
     clients[index].stream = action.stream
+  } else if(action.type == 'username' && index >= 0) {
+    clients[index].username = action.username
   } else if(action.type == 'remove') {
     clients.splice(clients.findIndex(val => val.clientId == action.clientId), 1)
   }
@@ -40,8 +42,12 @@ function Demo({ children }) {
 
   useEffect(() => {
 
-    session.on('connect', clientId => {
-      dispatch({ type: 'add', clientId })
+    session.getClients().forEach(client => {
+      dispatch({ type: 'add', ...client })
+    })
+
+    session.on('connect', (clientId, meta) => {
+      dispatch({ type: 'add', clientId, username: meta.username })
     })
 
     session.on('disconnect', clientId => {
@@ -49,7 +55,11 @@ function Demo({ children }) {
     })
 
     session.on('remote', (clientId, stream) => {
-      dispatch({ type: 'update', clientId, stream })
+      dispatch({ type: 'stream', clientId, stream })
+    })
+
+    session.on('meta', (clientId, meta) => {
+      dispatch({ type: 'username', clientId, username: meta.username })
     })
 
     socket = new WebSocket('ws://localhost:8080')

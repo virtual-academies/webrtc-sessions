@@ -13,10 +13,10 @@ import {
 
 class Connection {
 
-  constructor(network, clientId, username, type, timeStamp, config={}) {
+  constructor(network, clientId, metadata, type, timeStamp, config={}) {
     this.network = network
     this.clientId = clientId
-    this.username = username
+    this.metadata = metadata
     this.type = type
     this.timeStamp = timeStamp
     this.status = 'new'
@@ -70,7 +70,7 @@ class Connection {
     this.connection.ondatachannel = this.onDataChannel.bind(this)
     this.connection.ontrack = this.onTrack.bind(this)
     this.openDataChannel()
-    this.trigger('connect', this.clientId, this.username)
+    this.trigger('connect', this.clientId, this.metadata)
   }
 
   disconnect() {
@@ -131,7 +131,7 @@ class Connection {
       this.network.send({
         peerId: this.clientId,
         timeStamp: this.network.timeStamp,
-        username: this.network.username,
+        metadata: this.network.metadata,
         type: 'peer'
       })
     }

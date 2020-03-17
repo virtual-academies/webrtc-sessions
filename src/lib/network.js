@@ -6,10 +6,10 @@ import { log, getTime } from './utils'
 
 class Network {
 
-  constructor(clientId, username, config) {
+  constructor(clientId, meta, config) {
     log('session started as', clientId)
     this.clientId = clientId
-    this.username = username
+    this.meta = meta || {}
     this.timeStamp = getTime()
     this.connected = false
     this.sendCallback = null
@@ -94,7 +94,7 @@ class Network {
   reconnect() {
     this.send({
       timeStamp: this.timeStamp,
-      username: this.username,
+      meta: this.meta,
       type: 'join'
     })
   }
@@ -105,7 +105,7 @@ class Network {
   onOpen() {
     this.send({
       timeStamp: this.timeStamp,
-      username: this.username,
+      meta: this.meta,
       type: 'join'
     })
   }
@@ -152,27 +152,27 @@ class Network {
     log('socket connection closed')
   }
 
-  open(clientId, username, timeStamp) {
+  open(clientId, meta, timeStamp) {
     if(clientId < this.clientId) {
-      this.openConnection(clientId, username, 'answer', timeStamp)
+      this.openConnection(clientId, meta, 'answer', timeStamp)
     } else {
-      this.openConnection(clientId, username, 'offer', timeStamp)
+      this.openConnection(clientId, meta, 'offer', timeStamp)
     }
   }
 
-  join({ clientId, timeStamp, username }) {
-    this.open(clientId, username, timeStamp)
+  join({ clientId, timeStamp, meta }) {
+    this.open(clientId, meta, timeStamp)
     this.send({
       peerId: clientId,
       timeStamp: this.timeStamp,
-      username: this.username,
+      meta: this.meta,
       type: 'peer'
     })
   }
 
-  peer({ clientId, timeStamp, username }) {
+  peer({ clientId, timeStamp, meta }) {
     if(!this.connections[clientId]) {
-      this.open(clientId, username, timeStamp)
+      this.open(clientId, meta, timeStamp)
     } else if(this.stream) {
       this.connections[clientId].onNegotiationNeeded()
     }
@@ -208,13 +208,13 @@ class Network {
     }
   }
 
-  openConnection(clientId, username, type, timeStamp) {
+  openConnection(clientId, meta, type, timeStamp) {
     if(this.connections[clientId]) {
       this.connections[clientId].reconnect()
     } else {
       log('opening to', type, clientId)
-      this.connections[clientId] = new Connection(this, clientId, username, type, timeStamp, this.config.connection)
-      this.connections[clientId].on('connect', () => this.onConnect.bind(this))
+      this.connections[clientId] = new Connection(this, clientId, meta, type, timeStamp, this.config.connection)
+      this.connections[clientId].on('connect', this.onConnect.bind(this))
       this.connections[clientId].on('open', () => this.onReady(clientId))
       this.connections[clientId].on('disconnect', () => this.onDisconnect(clientId))
       this.connections[clientId].on('fail', () => this.onFail(clientId))
@@ -224,10 +224,10 @@ class Network {
     }
   }
 
-  onConnect(clientId, username) {
-    log('connected to', clientId)
+  onConnect(clientId, meta) {
+    log('connected to', clientId, meta)
     if(this.stream) this.connections[clientId].addStream(this.stream)
-    this.trigger('connect', clientId, username)
+    this.trigger('connect', clientId, meta)
   }
 
   onReady(clientId) {
@@ -315,7 +315,34 @@ class Network {
   }
 
   onData(clientId, data) {
-    this.trigger('data', data)
+    switch(data.type) {
+      case 'meta': this.onmeta(data); break
+      default: this.trigger('data', data)
+    }
+  }
+
+  setmeta(meta) {
+    this.meta = meta
+    this.broadcast({
+      type: 'meta',
+      meta: meta
+    })
+  }
+
+  onmeta({ clientId, meta }) {
+    this.connections[clientId].meta = meta
+    this.trigger('meta', clientId, meta)
+  }
+
+  getClients() {
+    return Object.keys(this.connections).map(clientId => {
+      if(this.connections[clientId].status != 'closed') {
+        return {
+          meta: this.connections[clientId].meta,
+          clientId: clientId
+        }
+      }
+    })
   }
 }
 

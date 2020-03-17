@@ -20,3 +20,85 @@ body {
 .chat {
   width: 300px;
 }
+
+.peers {
+  display: block;
+  position: absolute;
+  z-index: 10000;
+  right: 0;
+  bottom: 45px;
+  width: 120px;
+  padding: 5px;
+  background-color: #ffffff;
+  border: 1px solid #d2d2d2;
+  box-shadow: 0 0 0 0.5px rgba(209, 209, 209, 0.32), 0 0 7pt 0pt rgba(204, 204, 204, 0.52);
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.peers:after {
+  content: '';
+  position: absolute;
+  border-style: solid;
+  border-width: 15px 10px 0;
+  border-color: #ffffff transparent;
+  display: block;
+  width: 0;
+  z-index: 10000;
+  bottom: -15px;
+  right: 7px;
+}
+
+.peers:before {
+  content: '';
+  position: absolute;
+  border-style: solid;
+  border-width: 15px 10px 0;
+  border-color: #000000 transparent;
+  display: block;
+  width: 0;
+  z-index: 10000;
+  bottom: -15px;
+  right: 7px;
+}
+
+.peer {
+  line-height: 20px;
+  font-size: 12px;
+  clear: both;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.color {
+  display: block;
+  float: left;
+  margin-right: 5px;
+  width: 18px;
+  height: 18px;
+  border: 1px solid #d2d2d2;
+}
+
+.peer input {
+  font-size: 12px;
+  width: 100%;
+  border-top: none;
+  border-right: none;
+  border-left: none;
+  border-bottom: 1px solid #CCCCCC;
+  outline: none;
+  padding-bottom: 3px;
+}
+
+.separator {
+  width: 1px;
+  float: left;
+  margin: 0 6px 0 6px;
+  height: 38px;
+  background-color: rgba(78, 85, 92, 0.22);
+}
+
+.user {
+  background-image: url('data:image/svg+xml;base64,PHN2ZyBhcmlhLWhpZGRlbj0idHJ1ZSIgZm9jdXNhYmxlPSJmYWxzZSIgZGF0YS1wcmVmaXg9ImZhcyIgZGF0YS1pY29uPSJ1c2VyIiByb2xlPSJpbWciIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDQ0OCA1MTIiIGNsYXNzPSJzdmctaW5saW5lLS1mYSBmYS11c2VyIGZhLXctMTQgZmEtM3giIGlkPSJzdmciPjxwYXRoIGZpbGw9ImN1cnJlbnRDb2xvciIgZD0iTTIyNCAyNTZjNzAuNyAwIDEyOC01Ny4zIDEyOC0xMjhTMjk0LjcgMCAyMjQgMCA5NiA1Ny4zIDk2IDEyOHM1Ny4zIDEyOCAxMjggMTI4em04OS42IDMyaC0xNi43Yy0yMi4yIDEwLjItNDYuOSAxNi03Mi45IDE2cy01MC42LTUuOC03Mi45LTE2aC0xNi43QzYwLjIgMjg4IDAgMzQ4LjIgMCA0MjIuNFY0NjRjMCAyNi41IDIxLjUgNDggNDggNDhoMzUyYzI2LjUgMCA0OC0yMS41IDQ4LTQ4di00MS42YzAtNzQuMi02MC4yLTEzNC40LTEzNC40LTEzNC40eiIgY2xhc3M9IiIvPjwvc3ZnPg==')
+}
