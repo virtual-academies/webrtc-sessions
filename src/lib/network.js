@@ -6,7 +6,7 @@ import { log, getTime } from './utils'
 
 class Network {
 
-  constructor(clientId, meta, config) {
+  constructor(clientId, meta={}, config={}) {
     log('session started as', clientId)
     this.clientId = clientId
     this.meta = meta || {}

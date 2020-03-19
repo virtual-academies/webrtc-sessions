@@ -15,7 +15,7 @@
     "react-native-get-random-values": "^1.3.0",
     "react-native-webrtc": "^1.75.3",
     "uuid": "^7.0.2",
-    "webrtc-sessions": "renevatium/webrtc-sessions#master"
+    "webrtc-sessions": "github:renevatium/webrtc-sessions#master"
   },
   "devDependencies": {
     "@babel/core": "^7.6.2",

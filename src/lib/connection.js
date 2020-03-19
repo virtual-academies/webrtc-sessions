@@ -312,9 +312,7 @@ class Connection {
   }
 
   clearStream() {
-    console.log('checking getSenders', this.connection.getSenders)
     if(this.connection.getSenders) {
-      console.log('seriously? wtf is going on?')
       this.connection.getSenders().forEach(sender => {
         this.connection.removeTrack(sender)
       })
