@@ -301,17 +301,23 @@ class Connection {
     if(this.isStable()) {
       log('adding stream to connection with', this.clientId)
       this.clearStream()
-      stream.getTracks().forEach(track => {
-        this.connection.addTrack(track, stream)
-      })
+      if(this.connection.addTrack) {
+        stream.getTracks().forEach(track => {
+          this.connection.addTrack(track, stream)
+        })
+      } else if(this.connection.addStream) {
+        this.connection.addStream(this.stream)
+      }
     }
   }
 
   clearStream() {
-    if(this.connection) {
+    if(this.connection.getSenders) {
       this.connection.getSenders().forEach(sender => {
         this.connection.removeTrack(sender)
       })
+    } else if(this.connection.removeStream) {
+      this.connection.removeStream(this.stream)
     }
   }
 
