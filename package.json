@@ -4,7 +4,7 @@
   "description": "webrtc library",
   "main": "dist/index.js",
   "scripts": {
-    "start": "webpack-dev-server --progress --config ./demo/webpack.config.js --inline --open --watch --hot",
+    "start": "webpack-dev-server --progress --config ./demo/react/webpack.config.js --inline --open --watch --hot",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack --mode production --progress --config ./webpack.config.js",
     "prepare": "npm run build"
