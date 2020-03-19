@@ -3,6 +3,8 @@
 
 Pure JS WebRTC library for peer-to-peer (P2P) live streaming and data communication.
 
+*NB: Sessions is still under development!*
+
 ## WebRTC
 
 [WebRTC](https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API) (Web Real-Time Communication) is a technology which enables Web applications
@@ -16,14 +18,36 @@ that the user installs plug-ins or any other third-party software.
 In fact, the standards and protocols used for WebRTC implementations are highly stable, but there are a few notable differences across platforms
 and browsers. For full interop information, see [webrtc.org/web-apis/interop](https://www.webrtc.org/web-apis/interop).
 
-## Installation
-
 ### Web Socket
 
 A web socket, or similar, full-duplex communication channel is required for WebRTC signaling.
 
-A simple [NodeJS Express WebSocket Server](https://github.com/renevatium/websocket) can be used to run the demos or for testing purposes.<br/>
-[WebSocket.in](https://www.websocket.in/) provides an open and free WebSocket service.
+A simple [NodeJS Express WebSocket Server](https://github.com/renevatium/websocket) can be used to run the demos or for testing purposes; or<br/>
+[WebSocket.in](https://www.websocket.in/) provides an open and free WebSocket service; or<br />
+Any full-duplex communication channel, such as AWS IoT or Google Firebase.
+
+## Installation
+
+```
+$ npm install --save sessions
+```
+
+## Running the Demos
+
+#### React
+
+The React demo imports directly from the library source to enable quicker development and global linting.
+
+```
+$ git clone git@github.com:renevatium/sessions.git
+$ cd ./sessions
+$ npm install
+$ npm start
+```
+
+### React Native
+
+Still under development.
 
 ## License
 
