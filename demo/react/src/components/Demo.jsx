@@ -9,7 +9,7 @@ import React, {
   useEffect
 } from 'react'
 
-import Session from '../../../src'
+import Session from '../../../../src'
 
 import Loader from './Loader'
 import Conference from './Conference'

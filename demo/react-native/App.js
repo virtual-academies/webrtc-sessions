@@ -11,7 +11,7 @@ import { StyleSheet, View } from 'react-native'
 import { Colors } from 'react-native/Libraries/NewAppScreen'
 import { RTCView, mediaDevices } from 'react-native-webrtc'
 
-import Session from 'sessions'
+import Session from '../src'
 
 const styles = StyleSheet.create({
   container: {
