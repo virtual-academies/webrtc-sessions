@@ -69,6 +69,7 @@ class Connection {
     this.connection.onsignalingstatechange = this.onSignalingStateChange.bind(this)
     this.connection.ondatachannel = this.onDataChannel.bind(this)
     this.connection.ontrack = this.onTrack.bind(this)
+    this.connection.onaddstream = this.onAddStream.bind(this)
     this.openDataChannel()
     this.trigger('connect', this.clientId, this.meta)
   }
@@ -244,6 +245,17 @@ class Connection {
     this.trigger('stream', this.clientId)
   }
 
+  onAddStream(stream) {
+    /*log('received track from', this.clientId)
+    this.stream = event.streams[0]
+    this.stream.onremovetrack = this.removeStream.bind(this)
+    this.audioContext = attachAudioAnalyser(this.stream, audioLevel => {
+      this.audioLevel = audioLevel
+    })
+    this.trigger('stream', this.clientId)*/
+    console.log('onAddStream', stream)
+  }
+
   removeStream() {
     if(this.stream) {
       if(this.audioContext) {
@@ -306,6 +318,7 @@ class Connection {
           this.connection.addTrack(track, stream)
         })
       } else if(this.connection.addStream) {
+        console.log('addStream', stream)
         this.connection.addStream(stream)
       }
     }
