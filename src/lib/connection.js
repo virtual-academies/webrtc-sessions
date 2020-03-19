@@ -306,7 +306,7 @@ class Connection {
           this.connection.addTrack(track, stream)
         })
       } else if(this.connection.addStream) {
-        this.connection.addStream(this.stream)
+        this.connection.addStream(stream)
       }
     }
   }
@@ -318,7 +318,7 @@ class Connection {
           this.connection.removeTrack(sender)
         })
       } else if(this.connection.removeStream) {
-        this.connection.removeStream(this.stream)
+        //this.connection.removeStream(this.stream)
       }
     }
   }

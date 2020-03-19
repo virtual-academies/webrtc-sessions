@@ -68,7 +68,7 @@ const App = () => {
     })
 
     session.on('remote', (clientId, stream) => {
-      dispatch({ type: 'stream', clientId, stream })
+      //dispatch({ type: 'stream', clientId, stream })
     })
 
     session.on('meta', (clientId, meta) => {
