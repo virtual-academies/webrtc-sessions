@@ -22,10 +22,10 @@ and browsers. For full interop information, see [webrtc.org/web-apis/interop](ht
 
 A web socket, or similar, full-duplex communication channel is required for WebRTC signaling.
 
-[WebSocket.in](https://www.websocket.in/) provides an open and free WebSocket server for all.
+A simple [NodeJS Express WebSocket Server](https://github.com/renevatium/websocket) can be used to run the demos or for testing purposes.<br/>
+[WebSocket.in](https://www.websocket.in/) provides an open and free WebSocket service.
 
 ## License
 
-This package is licensed under Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0).
-
+This package is licensed under Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0).<br/>
 Full license text can be found [here](https://creativecommons.org/licenses/by-nc/4.0/).

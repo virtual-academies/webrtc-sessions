@@ -7,7 +7,7 @@ module.exports = {
   mode: 'development',
   entry: [
     'babel-polyfill',
-    './demo/src/index.js'
+    './demo/react/src/index.js'
   ],
   watch: true,
   module: {
@@ -42,7 +42,7 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './demo/src/index.html',
+      template: './demo/react/src/index.html',
       inject: true
     })
   ],
@@ -54,7 +54,7 @@ module.exports = {
   devServer: {
     port: 3000,
     host: 'localhost',
-    contentBase: './demo/src/assets',
+    contentBase: './demo/react/src/assets',
     historyApiFallback: true,
     noInfo: false,
     stats: {

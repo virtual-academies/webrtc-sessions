@@ -256,17 +256,21 @@ class Network {
       video: true,
       audio: true
     }).then(stream => {
-      this.stream = stream
-      if(!video) this.toggleVideo()
-      if(!audio) this.toggleAudio()
-      Object.keys(this.connections).forEach(clientId => {
-        this.connections[clientId].addStream(this.stream)
-      })
-      this.trigger('stream', this.stream)
-      this.trackAudio()
+      this.setStream(stream)
     }).catch(err => {
       log('error in startStreaming', err.message)
     })
+  }
+
+  setStream(stream, video=true, audio=true) {
+    this.stream = stream
+    if(!video) this.toggleVideo()
+    if(!audio) this.toggleAudio()
+    Object.keys(this.connections).forEach(clientId => {
+      this.connections[clientId].addStream(this.stream)
+    })
+    this.trigger('stream', this.stream)
+    this.trackAudio()
   }
 
   stopStreaming() {

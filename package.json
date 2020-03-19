@@ -11,8 +11,8 @@
   },
   "author": "renevatium",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/renevatium/sessions.git"
+    "type": "git",
+    "url": "https://github.com/renevatium/sessions.git"
   },
   "license": "CC-BY-NC-4.0",
   "dependencies": {
