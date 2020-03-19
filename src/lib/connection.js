@@ -312,12 +312,14 @@ class Connection {
   }
 
   clearStream() {
-    if(this.connection.getSenders) {
-      this.connection.getSenders().forEach(sender => {
-        this.connection.removeTrack(sender)
-      })
-    } else if(this.connection.removeStream) {
-      this.connection.removeStream(this.stream)
+    if(this.stream){
+      if(this.connection.getSenders) {
+        this.connection.getSenders().forEach(sender => {
+          this.connection.removeTrack(sender)
+        })
+      } else if(this.connection.removeStream) {
+        this.connection.removeStream(this.stream)
+      }
     }
   }
 
