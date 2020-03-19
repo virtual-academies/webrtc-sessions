@@ -13,10 +13,10 @@ import {
 
 class Connection {
 
-  constructor(network, clientId, metadata, type, timeStamp, config={}) {
+  constructor(network, clientId, meta, type, timeStamp, config={}) {
     this.network = network
     this.clientId = clientId
-    this.metadata = metadata
+    this.meta = meta
     this.type = type
     this.timeStamp = timeStamp
     this.status = 'new'
@@ -70,7 +70,7 @@ class Connection {
     this.connection.ondatachannel = this.onDataChannel.bind(this)
     this.connection.ontrack = this.onTrack.bind(this)
     this.openDataChannel()
-    this.trigger('connect', this.clientId, this.metadata)
+    this.trigger('connect', this.clientId, this.meta)
   }
 
   disconnect() {
@@ -131,7 +131,7 @@ class Connection {
       this.network.send({
         peerId: this.clientId,
         timeStamp: this.network.timeStamp,
-        metadata: this.network.metadata,
+        meta: this.network.meta,
         type: 'peer'
       })
     }
@@ -312,7 +312,9 @@ class Connection {
   }
 
   clearStream() {
+    console.log('checking getSenders', this.connection.getSenders)
     if(this.connection.getSenders) {
+      console.log('seriously? wtf is going on?')
       this.connection.getSenders().forEach(sender => {
         this.connection.removeTrack(sender)
       })

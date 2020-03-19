@@ -19,4 +19,6 @@ import {
 
 registerGlobals();
 
+__DEV__ = true
+
 AppRegistry.registerComponent(appName, () => App);

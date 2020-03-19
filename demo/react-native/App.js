@@ -6,12 +6,15 @@
  * @flow
  */
 
+import 'react-native-get-random-values'
+import { v4 as uuidv4 } from 'uuid'
+
 import React, { Fragment, useState, useReducer, useEffect } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { Colors } from 'react-native/Libraries/NewAppScreen'
 import { RTCView, mediaDevices } from 'react-native-webrtc'
 
-import Session from '../src'
+import Session from 'webrtc-sessions'
 
 const styles = StyleSheet.create({
   container: {
@@ -72,28 +75,22 @@ const App = () => {
       dispatch({ type: 'username', clientId, username: meta.username })
     })
 
-    socket = new WebSocket('ws://localhost:8080')
+    socket = new WebSocket('ws://10.0.2.2:8080')
 
     const { onOpen, onError, onMessage, onClose } = session.connect(message => {
       socket.send(message)
     })
 
-    socket.addEventListener('open', () => {
-      setLoaded(true)
+    socket.onopen = () => {
       onOpen()
-    })
-
-    socket.addEventListener('message', message => {
-      onMessage(message.data)
-    })
-    socket.addEventListener('error', onError)
-    socket.addEventListener('close', onClose)
-
-    return () => {
-      socket.close()
-      session.disconnect()
-      setLoaded(false)
     }
+
+    socket.onmessage = message => {
+      onMessage(message.data)
+    }
+
+    socket.onerror = onError
+    socket.onclose = onClose
 
     let isFront = true
     mediaDevices.enumerateDevices().then(sourceInfos => {
@@ -116,13 +113,22 @@ const App = () => {
           optional: (videoSourceId ? [{sourceId: videoSourceId}] : [])
         }
       }).then(localStream => {
-        sessions.setStream(localStream)
+        session.setStream(localStream)
       }).catch(error => {
         console.log(error)
       })
     })
 
+    return () => {
+      socket.close()
+      session.disconnect()
+    }
+
   }, [])
+
+  if(!session) {
+    session = new Session(uuidv4())
+  }
 
   return (
     <View style={styles.container}>
