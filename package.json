@@ -1,7 +1,7 @@
 {
-  "name": "sessions",
+  "name": "webrtc-sessions",
   "version": "0.0.1",
-  "description": "webrtc library",
+  "description": "Pure JS WebRTC library for peer-to-peer (P2P) live streaming and data communication.",
   "main": "dist/index.js",
   "scripts": {
     "start": "webpack-dev-server --progress --config ./demo/react/webpack.config.js --inline --open --watch --hot",
@@ -12,7 +12,7 @@
   "author": "renevatium",
   "repository": {
     "type": "git",
-    "url": "https://github.com/renevatium/sessions.git"
+    "url": "https://github.com/renevatium/webrtc-sessions.git"
   },
   "license": "CC-BY-NC-4.0",
   "dependencies": {

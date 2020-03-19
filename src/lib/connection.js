@@ -308,9 +308,11 @@ class Connection {
   }
 
   clearStream() {
-    this.connection.getSenders().forEach(sender => {
-      this.connection.removeTrack(sender)
-    })
+    if(this.connection) {
+      this.connection.getSenders().forEach(sender => {
+        this.connection.removeTrack(sender)
+      })
+    }
   }
 
   isStable() {

@@ -1,5 +1,5 @@
 
-# Sessions
+# WebRTC Sessions
 
 Pure JS WebRTC library for peer-to-peer (P2P) live streaming and data communication.
 
@@ -29,7 +29,7 @@ Any full-duplex communication channel, such as AWS IoT or Google Firebase.
 ## Installation
 
 ```
-$ npm install --save sessions
+$ npm install --save webrtc-sessions
 ```
 
 ## Running the Demos
@@ -39,8 +39,8 @@ $ npm install --save sessions
 The React demo imports directly from the library source to enable quicker development and global linting.
 
 ```
-$ git clone git@github.com:renevatium/sessions.git
-$ cd ./sessions
+$ git clone git@github.com:renevatium/webrtc-sessions.git
+$ cd ./webrtc-sessions
 $ npm install
 $ npm start
 ```
