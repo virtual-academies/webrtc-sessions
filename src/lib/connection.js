@@ -236,6 +236,7 @@ class Connection {
   }
 
   onTrack(event) {
+    console.log('onTrack', event)
     log('received track from', this.clientId)
     this.stream = event.streams[0]
     this.stream.onremovetrack = this.removeStream.bind(this)

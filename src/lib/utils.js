@@ -48,6 +48,10 @@ export const chunkString = (str, length) => {
  * Attaches audio analyser to MediaStream
 */
 export const attachAudioAnalyser = (stream, callback) => {
+
+  if(stream.getAudioTracks().length == 0)
+    return;
+
   const audioContext = new AudioContext() // || window.webkitAudioContext
   const analyser = audioContext.createAnalyser()
   const microphone = audioContext.createMediaStreamSource(stream)
