@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid'
 import Session from 'webrtc-sessions'
 
 import React, { Fragment, useState, useReducer, useEffect } from 'react'
-import { StyleSheet, View, StatusBar, Button } from 'react-native'
+import { StyleSheet, View, StatusBar, Button, Dimensions } from 'react-native'
 import { Colors } from 'react-native/Libraries/NewAppScreen'
 import { RTCView, mediaDevices } from 'react-native-webrtc'
 
@@ -67,16 +67,14 @@ const App = () => {
       setStream(stream)
     })
 
-    socket = new WebSocket('ws://192.168.0.103:8080')
-
-    console.log(socket)
+    socket = new WebSocket('ws://192.168.0.103:8080') // Use local IP on device
+    // socket = new WebSocket('ws://10.0.2.2:8080') // Use host IP on emulator
 
     const { onOpen, onError, onMessage, onClose } = session.connect(message => {
       socket.send(message)
     })
 
     socket.onopen = () => {
-      console.log('OPEN!')
       onOpen()
     }
 
@@ -85,12 +83,10 @@ const App = () => {
     }
 
     socket.onerror = (e) => {
-      console.log('ERROR!', e.reason, e.message)
       onError(e)
     }
 
     socket.onclose = (e) => {
-      console.log('CLOSE!')
       onClose(e)
     }
 
@@ -144,6 +140,19 @@ const App = () => {
     session = new Session(uuidv4())
   }
 
+  const RTCViewStyle = Object.assign({}, styles.RTCView, {
+    height: (Dimensions.get('window').width/4)*3,
+    width: Dimensions.get('window').width
+  })
+
+
+  if(clients.length > 4) {
+    RTCViewStyle.height = RTCViewStyle.height/2
+    RTCViewStyle.width = RTCViewStyle.width/2
+  } else if(clients.length > 2) {
+    RTCViewStyle.width = RTCViewStyle.width/2
+  }
+
   return (
     <Fragment>
       <StatusBar barStyle="dark-content" />
@@ -151,12 +160,12 @@ const App = () => {
         { clients.map((client, index) => {
           if(client.stream) {
             return (
-              <RTCView key={client.clientId} streamURL={client.stream.toURL()} style={styles.RTCView} />
+              <RTCView key={client.clientId} streamURL={client.stream.toURL()} zOrder={1} objectFit={'cover'} style={RTCViewStyle} />
             )
           }
         })}
         { stream &&
-          <RTCView streamURL={stream.toURL()} style={styles.RTCViewLocal} />
+          <RTCView streamURL={stream.toURL()} zOrder={10} objectFit={'cover'} style={styles.RTCViewLocal} />
         }
         <View style={styles.ActionButtons}>
           <Icon icon={'join'} title={'join'} width={32} height={32} onPress={toggleStream} style={styles.ToggleStreamButton} />
@@ -168,13 +177,14 @@ const App = () => {
 
 const styles = StyleSheet.create({
   Container: {
-    flexBasis: '100%',
+    flex: 1,
+    flexWrap: 'wrap',
     backgroundColor: Colors.dark
   },
   RTCView: {
-    flex: 1,
     elevation: 1,
-    zIndex: 1
+    zIndex: 1,
+    backgroundColor: Colors.light
   },
   RTCViewLocal: {
     position: 'absolute',
