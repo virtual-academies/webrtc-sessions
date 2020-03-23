@@ -3,6 +3,7 @@
 
 /* eslint-disable-next-line no-unused-vars */
 import webrtcAdaptor from 'webrtc-adapter'
+
 import {
   log,
   getTime,
@@ -35,6 +36,10 @@ class Connection {
   configure(config) {
     this.config = Object.assign({
       iceServers: [{
+        urls: [ 'turn:34.200.250.118:3478' ],
+        username: 'VATurnServer',
+        credential: 'icHdu4shl3ZU8bQFEAkq'
+      },{
         urls: ['stun:stun.l.google.com:19302']
       }],
       iceTransportPolicy: 'all',
@@ -93,6 +98,7 @@ class Connection {
       this.connection.onsignalingstatechange = null
       this.connection.ondatachannel = null
       this.connection.ontrack = null
+      this.connection.onaddstream = null
       this.connection.close()
       this.connection = null
     }
@@ -107,6 +113,9 @@ class Connection {
   }
 
   onNegotiationNeeded() {
+
+    if(this.connection.signalingState != 'stable') return
+
     if(this.type == 'offer') {
       log('creating offer for', this.clientId)
       this.connection.createOffer({
@@ -171,6 +180,9 @@ class Connection {
     if(!this.connection) {
       this.connect()
     }
+
+    if(this.connection.signalingState != 'stable') return
+
     this.connection.setRemoteDescription(new RTCSessionDescription(sdp)).then(() => {
       log('creating answer for', this.clientId)
       this.connection.createAnswer().then(answer => {
@@ -236,7 +248,6 @@ class Connection {
   }
 
   onTrack(event) {
-    console.log('onTrack', event)
     log('received track from', this.clientId)
     this.stream = event.streams[0]
     this.stream.onremovetrack = this.removeStream.bind(this)
@@ -246,15 +257,16 @@ class Connection {
     this.trigger('stream', this.clientId)
   }
 
-  onAddStream(stream) {
-    /*log('received track from', this.clientId)
-    this.stream = event.streams[0]
-    this.stream.onremovetrack = this.removeStream.bind(this)
-    this.audioContext = attachAudioAnalyser(this.stream, audioLevel => {
-      this.audioLevel = audioLevel
-    })
-    this.trigger('stream', this.clientId)*/
-    console.log('onAddStream', stream)
+  onAddStream(event) {
+    if(!this.stream) {
+      log('received stream from', this.clientId)
+      this.stream = event.stream
+      this.stream.onremovetrack = this.removeStream.bind(this)
+      this.audioContext = attachAudioAnalyser(this.stream, audioLevel => {
+        this.audioLevel = audioLevel
+      })
+      this.trigger('stream', this.clientId)
+    }
   }
 
   removeStream() {
@@ -319,20 +331,19 @@ class Connection {
           this.connection.addTrack(track, stream)
         })
       } else if(this.connection.addStream) {
-        console.log('addStream', stream)
         this.connection.addStream(stream)
       }
     }
   }
 
   clearStream() {
-    if(this.stream){
+    if(this.stream && this.connection){
       if(this.connection.getSenders) {
         this.connection.getSenders().forEach(sender => {
           this.connection.removeTrack(sender)
         })
       } else if(this.connection.removeStream) {
-        //this.connection.removeStream(this.stream)
+        if(this.stream) this.connection.removeStream(this.stream)
       }
     }
   }

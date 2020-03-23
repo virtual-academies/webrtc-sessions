@@ -256,7 +256,7 @@ class Network {
       video: true,
       audio: true
     }).then(stream => {
-      this.setStream(stream)
+      this.setStream(stream, video, audio)
     }).catch(err => {
       log('error in startStreaming', err.message)
     })
@@ -274,11 +274,13 @@ class Network {
   }
 
   stopStreaming() {
-    this.stream.getTracks().forEach(track => track.stop())
-    Object.keys(this.connections).forEach(clientId => {
-      this.connections[clientId].clearStream()
-      this.connections[clientId].removeStream()
-    })
+    if(this.stream){
+      this.stream.getTracks().forEach(track => track.stop())
+      Object.keys(this.connections).forEach(clientId => {
+        this.connections[clientId].clearStream()
+        this.connections[clientId].removeStream()
+      })
+    }
     //this.disconnect()
   }
 
@@ -320,12 +322,12 @@ class Network {
 
   onData(clientId, data) {
     switch(data.type) {
-      case 'meta': this.onmeta(data); break
+      case 'meta': this.onMeta(data); break
       default: this.trigger('data', data)
     }
   }
 
-  setmeta(meta) {
+  setMeta(meta) {
     this.meta = meta
     this.broadcast({
       type: 'meta',
@@ -333,7 +335,7 @@ class Network {
     })
   }
 
-  onmeta({ clientId, meta }) {
+  onMeta({ clientId, meta }) {
     this.connections[clientId].meta = meta
     this.trigger('meta', clientId, meta)
   }

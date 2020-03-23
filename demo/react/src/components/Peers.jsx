@@ -15,7 +15,7 @@ function Peers({ session, clients, hidden, hidePeers }) {
 
   const changeUsername = (e) => {
     e.preventDefault()
-    session.setmeta({
+    session.setMeta({
       username: input.current.value
     })
     hidePeers(true)

@@ -8,23 +8,14 @@
 
 import 'react-native-get-random-values'
 import { v4 as uuidv4 } from 'uuid'
+import Session from 'webrtc-sessions'
 
 import React, { Fragment, useState, useReducer, useEffect } from 'react'
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, View, StatusBar, Button } from 'react-native'
 import { Colors } from 'react-native/Libraries/NewAppScreen'
 import { RTCView, mediaDevices } from 'react-native-webrtc'
 
-import Session from 'webrtc-sessions'
-
-const styles = StyleSheet.create({
-  container: {
-    flexBasis: '100%'
-  },
-  RTCView: {
-    backgroundColor: Colors.PRIMARY_COLOR,
-    flex: 1
-  }
-})
+import Icon from './src/components/Icon'
 
 let session = null
 let socket = null
@@ -47,6 +38,7 @@ const clientsReducer = (clients, action) => {
 const App = () => {
 
   const [ stream, setStream ] = useState(null)
+  const [ isStreaming, toggleStreaming ] = useState(false)
   const [ clients, dispatch ] = useReducer(clientsReducer, [])
 
   useEffect(() => {
@@ -63,25 +55,28 @@ const App = () => {
       dispatch({ type: 'remove', clientId })
     })
 
-    session.on('stream', stream => {
-      setStream(stream)
-    })
-
     session.on('remote', (clientId, stream) => {
-      //dispatch({ type: 'stream', clientId, stream })
+      dispatch({ type: 'stream', clientId, stream })
     })
 
     session.on('meta', (clientId, meta) => {
       dispatch({ type: 'username', clientId, username: meta.username })
     })
 
-    socket = new WebSocket('ws://10.0.2.2:8080')
+    session.on('stream', stream => {
+      setStream(stream)
+    })
+
+    socket = new WebSocket('ws://192.168.0.103:8080')
+
+    console.log(socket)
 
     const { onOpen, onError, onMessage, onClose } = session.connect(message => {
       socket.send(message)
     })
 
     socket.onopen = () => {
+      console.log('OPEN!')
       onOpen()
     }
 
@@ -89,35 +84,15 @@ const App = () => {
       onMessage(message.data)
     }
 
-    socket.onerror = onError
-    socket.onclose = onClose
+    socket.onerror = (e) => {
+      console.log('ERROR!', e.reason, e.message)
+      onError(e)
+    }
 
-    let isFront = true
-    mediaDevices.enumerateDevices().then(sourceInfos => {
-      let videoSourceId
-      for (let i = 0; i < sourceInfos.length; i++) {
-        const sourceInfo = sourceInfos[i]
-        if(sourceInfo.kind == "videoinput" && sourceInfo.facing == (isFront ? "front" : "environment")) {
-          videoSourceId = sourceInfo.deviceId
-        }
-      }
-      mediaDevices.getUserMedia({
-        audio: true,
-        video: {
-          mandatory: {
-            minWidth: 500, // Provide your own width, height and frame rate here
-            minHeight: 300,
-            minFrameRate: 30
-          },
-          facingMode: (isFront ? "user" : "environment"),
-          optional: (videoSourceId ? [{sourceId: videoSourceId}] : [])
-        }
-      }).then(localStream => {
-        session.setStream(localStream)
-      }).catch(error => {
-        console.log(error)
-      })
-    })
+    socket.onclose = (e) => {
+      console.log('CLOSE!')
+      onClose(e)
+    }
 
     return () => {
       socket.close()
@@ -126,17 +101,109 @@ const App = () => {
 
   }, [])
 
+  const toggleStream = () => {
+    if (!isStreaming) {
+
+      let isFront = true
+      mediaDevices.enumerateDevices().then(sourceInfos => {
+        let videoSourceId
+        for (let i = 0; i < sourceInfos.length; i++) {
+          const sourceInfo = sourceInfos[i]
+          if(sourceInfo.kind == "videoinput" && sourceInfo.facing == (isFront ? "front" : "environment")) {
+            videoSourceId = sourceInfo.deviceId
+          }
+        }
+        mediaDevices.getUserMedia({
+          audio: true,
+          video: {
+            mandatory: {
+              minWidth: 500, // Provide your own width, height and frame rate here
+              minHeight: 300,
+              minFrameRate: 30
+            },
+            facingMode: (isFront ? "user" : "environment"),
+            optional: (videoSourceId ? [{sourceId: videoSourceId}] : [])
+          }
+        }).then(localStream => {
+          session.setStream(localStream)
+        }).catch(error => {
+          console.log(error)
+        })
+      })
+
+      toggleStreaming(true)
+
+    } else {
+      session.stopStreaming()
+      toggleStreaming(false)
+      setStream(null)
+    }
+  }
+
   if(!session) {
     session = new Session(uuidv4())
   }
 
   return (
-    <View style={styles.container}>
-      { stream &&
-        <RTCView streamURL={stream.toURL()} style={styles.RTCView} />
-      }
-    </View>
+    <Fragment>
+      <StatusBar barStyle="dark-content" />
+      <View style={styles.Container}>
+        { clients.map((client, index) => {
+          if(client.stream) {
+            return (
+              <RTCView key={client.clientId} streamURL={client.stream.toURL()} style={styles.RTCView} />
+            )
+          }
+        })}
+        { stream &&
+          <RTCView streamURL={stream.toURL()} style={styles.RTCViewLocal} />
+        }
+        <View style={styles.ActionButtons}>
+          <Icon icon={'join'} title={'join'} width={32} height={32} onPress={toggleStream} style={styles.ToggleStreamButton} />
+        </View>
+      </View>
+    </Fragment>
   )
 }
+
+const styles = StyleSheet.create({
+  Container: {
+    flexBasis: '100%',
+    backgroundColor: Colors.dark
+  },
+  RTCView: {
+    flex: 1,
+    elevation: 1,
+    zIndex: 1
+  },
+  RTCViewLocal: {
+    position: 'absolute',
+    width: 150,
+    height: 150,
+    top: 20,
+    right: 20,
+    elevation: 10,
+    zIndex: 10,
+    backgroundColor: Colors.dark
+  },
+  ActionButtons: {
+    position: 'absolute',
+    flex: 1,
+    bottom: 20,
+    left: 20,
+    elevation: 10,
+    zIndex: 10,
+  },
+  ToggleStreamButton: {
+    height: 25,
+    width: 25,
+    padding: 5,
+    backgroundColor: Colors.lighter,
+  },
+  ToggleStreamButtonImage: {
+    height: 15,
+    width: 15,
+  }
+})
 
 export default App
