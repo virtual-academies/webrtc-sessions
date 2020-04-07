@@ -24,6 +24,7 @@ class Connection {
     this.connection = null
     this.channel = null
     this.stream = null
+    this.localStream = null
     this.events = {}
     this.remoteCandidates = []
     this.localCandidates = []
@@ -171,7 +172,9 @@ class Connection {
     if(this.connection.signalingState == 'stable') {
       this.sendCandidates()
       this.addCandidates()
-      this.addStream(this.network.stream)
+      if(!this.localStream) {
+        this.addStream(this.network.stream)
+      }
     } else if(this.connection.signalingState == 'closed') {
       this.disconnect()
     }
@@ -278,6 +281,7 @@ class Connection {
       }
       this.stream.onremovetrack = null
       this.stream = null
+      this.localStream = null
       this.trigger('stream', this.clientId)
     }
   }
@@ -327,6 +331,7 @@ class Connection {
     if(this.isStable() && stream) {
       log('adding stream to connection with', this.clientId)
       this.clearStream()
+      this.localStream = stream
       if(this.connection.addTrack) {
         stream.getTracks().forEach(track => {
           this.connection.addTrack(track, stream)
@@ -347,6 +352,7 @@ class Connection {
         this.connection.removeStream(this.network.stream)
       }
     }
+    this.localStream = null
   }
 
   isStable() {

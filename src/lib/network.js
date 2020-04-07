@@ -282,6 +282,7 @@ class Network {
         this.connections[clientId].clearStream()
         this.connections[clientId].removeStream()
       })
+      this.stream = null
     }
     //this.disconnect()
   }
