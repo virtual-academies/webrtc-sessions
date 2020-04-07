@@ -270,7 +270,9 @@ class Network {
       this.connections[clientId].addStream(this.stream)
     })
     this.trigger('stream', this.stream)
-    this.trackAudio()
+    if(this.stream) {
+      this.trackAudio()
+    }
   }
 
   stopStreaming() {

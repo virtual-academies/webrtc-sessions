@@ -203,6 +203,12 @@ class Connection {
   }
 
   answer(sdp) {
+    if(!this.connection) {
+      this.connect()
+    }
+
+    if(this.connection.signalingState != 'stable') return
+
     this.connection.setRemoteDescription(new RTCSessionDescription(sdp)).catch(err => {
       log('error in connection answer', err.message)
       this.reconnect()
