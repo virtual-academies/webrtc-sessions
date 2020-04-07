@@ -171,6 +171,7 @@ class Connection {
     if(this.connection.signalingState == 'stable') {
       this.sendCandidates()
       this.addCandidates()
+      if(!this.stream) this.addStream(this.network.stream)
     } else if(this.connection.signalingState == 'closed') {
       this.disconnect()
     }
