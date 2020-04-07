@@ -171,7 +171,7 @@ class Connection {
     if(this.connection.signalingState == 'stable') {
       this.sendCandidates()
       this.addCandidates()
-      if(!this.stream) this.addStream(this.network.stream)
+      this.addStream(this.network.stream)
     } else if(this.connection.signalingState == 'closed') {
       this.disconnect()
     }
@@ -338,13 +338,13 @@ class Connection {
   }
 
   clearStream() {
-    if(this.stream && this.connection){
+    if(this.connection){
       if(this.connection.getSenders) {
         this.connection.getSenders().forEach(sender => {
           this.connection.removeTrack(sender)
         })
       } else if(this.connection.removeStream) {
-        if(this.stream) this.connection.removeStream(this.stream)
+        this.connection.removeStream(this.network.stream)
       }
     }
   }
