@@ -324,7 +324,7 @@ class Connection {
   }
 
   addStream(stream) {
-    if(this.isStable()) {
+    if(this.isStable() && stream) {
       log('adding stream to connection with', this.clientId)
       this.clearStream()
       if(this.connection.addTrack) {
