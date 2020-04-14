@@ -88,7 +88,17 @@ function Demo({ children }) {
   }, [])
 
   if(!session) {
-    session = new Session(uuid())
+    session = new Session(uuid(), null, {
+      connection: {
+        iceServers: [{
+          urls: [ 'turn:numb.viagenie.ca' ],
+          username: 'rene@proversity.org',
+          credential: 'qZl@373yQ7'
+        },{
+          urls: [ 'stun:stun.l.google.com:19302' ]
+        }]
+      }
+    })
   }
 
   return (

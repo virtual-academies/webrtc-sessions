@@ -12,7 +12,7 @@ and sites to capture and optionally stream audio and/or video media, as well as 
 intermediary. The set of standards that comprise WebRTC makes it possible to share data and perform teleconferencing peer-to-peer, without requiring
 that the user installs plug-ins or any other third-party software.
 
-### Cross-platform shim
+### Cross-platform
 
 [WebRTC-Adaptor](https://github.com/webrtcHacks/adapter) is a shim used to insulate apps from spec changes and prefix differences.
 In fact, the standards and protocols used for WebRTC implementations are highly stable, but there are a few notable differences across platforms
@@ -25,6 +25,15 @@ A web socket, or similar, full-duplex communication channel is required for WebR
 A simple [NodeJS Express WebSocket Server](https://github.com/renevatium/websocket) can be used to run the demos or for testing purposes; or<br/>
 [WebSocket.in](https://www.websocket.in/) provides an open and free WebSocket service; or<br />
 Any full-duplex communication channel, such as AWS IoT or Google Firebase.
+
+### STUN/TURN Servers
+
+A STUN/TURN server is used for NAT traversal in VoIP. Whether you're at home behind a common router, at work behind an enterprise firewall, or traveling, chances are that you will be behind a NAT which must be traversed before making calls.
+
+[Numb](https://numb.viagenie.ca/) is a free STUN/TURN service by Viagénie.<br />
+[Google](stun:stun.l.google.com:19302) also offers a free STUN service.
+
+Alternatively, [Coturn](https://github.com/coturn/coturn) is a free, open-source TURN server.
 
 ## Installation
 

@@ -37,10 +37,6 @@ class Connection {
   configure(config) {
     this.config = Object.assign({
       iceServers: [{
-        urls: [ 'turn:34.200.250.118:3478' ],
-        username: 'VATurnServer',
-        credential: 'icHdu4shl3ZU8bQFEAkq'
-      },{
         urls: ['stun:stun.l.google.com:19302']
       }],
       iceTransportPolicy: 'all',
