@@ -173,7 +173,7 @@ class Network {
   peer({ clientId, timeStamp, meta }) {
     if(!this.connections[clientId]) {
       this.open(clientId, meta, timeStamp)
-    } else if(this.stream) {
+    } else { //if(this.stream) {
       this.connections[clientId].onNegotiationNeeded()
     }
   }

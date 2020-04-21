@@ -130,6 +130,8 @@ class Connection {
               type: 'offer',
               sdp: offer
             })
+          }).catch(e => {
+            // local description doesn't match offer???
           })
         }
       })
