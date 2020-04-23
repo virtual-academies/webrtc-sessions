@@ -173,7 +173,7 @@ class Network {
   peer({ clientId, timeStamp, meta }) {
     if(!this.connections[clientId]) {
       this.open(clientId, meta, timeStamp)
-    } else { //if(this.stream) {
+    } else {
       this.connections[clientId].onNegotiationNeeded()
     }
   }
@@ -226,7 +226,7 @@ class Network {
 
   onConnect(clientId, meta) {
     log('connected to', clientId, meta)
-    if(this.stream) this.connections[clientId].addStream(this.stream)
+    //if(this.stream) this.connections[clientId].addStream(this.stream)
     this.trigger('connect', clientId, meta)
   }
 
@@ -266,9 +266,11 @@ class Network {
     this.stream = stream
     if(!video) this.toggleVideo()
     if(!audio) this.toggleAudio()
+
     Object.keys(this.connections).forEach(clientId => {
       this.connections[clientId].addStream(this.stream)
     })
+
     this.trigger('stream', this.stream)
     if(this.stream) {
       this.trackAudio()
@@ -280,11 +282,9 @@ class Network {
       this.stream.getTracks().forEach(track => track.stop())
       Object.keys(this.connections).forEach(clientId => {
         this.connections[clientId].clearStream()
-        this.connections[clientId].removeStream()
       })
       this.stream = null
     }
-    //this.disconnect()
   }
 
   isStreaming() {

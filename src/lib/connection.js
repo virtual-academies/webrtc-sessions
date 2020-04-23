@@ -78,6 +78,8 @@ class Connection {
 
   disconnect() {
 
+    log('disconnect', this.clientId)
+
     if(this.channel) {
       this.channel.close()
       this.channel = null
@@ -111,6 +113,7 @@ class Connection {
 
   onNegotiationNeeded() {
 
+    log('negotiation needed with', this.clientId)
     if(this.connection.signalingState != 'stable') return
 
     if(this.type == 'offer') {
@@ -136,7 +139,6 @@ class Connection {
         }
       })
     } else {
-      log('negotiation needed with', this.clientId)
       this.network.send({
         peerId: this.clientId,
         timeStamp: this.network.timeStamp,
@@ -166,16 +168,25 @@ class Connection {
   }
 
   onSignalingStateChange() {
+
     log('signaling state changed to', this.connection.signalingState, 'for', this.clientId)
+
     if(this.connection.signalingState == 'stable') {
+
       this.sendCandidates()
       this.addCandidates()
-      if(!this.localStream) {
-        this.addStream(this.network.stream)
-      }
+
     } else if(this.connection.signalingState == 'closed') {
       this.disconnect()
+    } else {
+
+      if(!this.localStream) {
+        log('adding local stream to', this.clientId)
+        this.addStream(this.network.stream)
+      }
+
     }
+
   }
 
   offer(sdp) {
@@ -187,7 +198,11 @@ class Connection {
 
     this.connection.setRemoteDescription(new RTCSessionDescription(sdp)).then(() => {
       log('creating answer for', this.clientId)
-      this.connection.createAnswer().then(answer => {
+      this.connection.createAnswer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: true,
+        iceRestart: true
+      }).then(answer => {
         log('setting local description for', this.clientId)
         this.connection.setLocalDescription(answer).then(() => {
           log('sending answer to', this.clientId)
@@ -196,6 +211,8 @@ class Connection {
             type: 'answer',
             sdp: answer
           })
+        }).catch(e => {
+          // Failed to execute 'setLocalDescription' on 'RTCPeerConnection': Failed to set local answer sdp: Called in wrong state: kStable
         })
       })
     }).catch(err => {
@@ -250,8 +267,17 @@ class Connection {
   }
 
   onTrack(event) {
-    log('received track from', this.clientId)
-    this.stream = event.streams[0]
+    log('received track from', this.clientId, event)
+
+    if(event.streams.length > 0) {
+      this.stream = event.streams[0]
+    } else if(this.stream) {
+      this.stream.addTrack(event.transceiver.receiver.track)
+    } else {
+      this.stream = new MediaStream([ event.transceiver.receiver.track ])
+      event.transceiver.receiver.track.onmute = this.removeStream.bind(this)
+    }
+
     this.stream.onremovetrack = this.removeStream.bind(this)
     this.audioContext = attachAudioAnalyser(this.stream, audioLevel => {
       this.audioLevel = audioLevel
@@ -279,7 +305,6 @@ class Connection {
       }
       this.stream.onremovetrack = null
       this.stream = null
-      this.localStream = null
       this.trigger('stream', this.clientId)
     }
   }
@@ -325,18 +350,34 @@ class Connection {
     }
   }
 
+  getTransceiverKind(t) {
+    return t.sender && t.sender.track ? t.sender.track.kind : t.receiver.track.kind
+  }
+
   addStream(stream) {
     if(this.isStable() && stream) {
       log('adding stream to connection with', this.clientId)
+
       this.clearStream()
       this.localStream = stream
       if(this.connection.addTrack) {
-        stream.getTracks().forEach(track => {
-          this.connection.addTrack(track, stream)
+
+        let transceivers = this.connection.getTransceivers()
+        this.localStream.getTracks().forEach(track => {
+          for(let i=0;i<transceivers.length;i++) {
+            if(this.getTransceiverKind(transceivers[i]) == track.kind) {
+              transceivers[i].sender.replaceTrack(track)
+              transceivers[i].direction = 'sendrecv'
+              return
+            }
+          }
+          this.connection.addTrack(track, this.localStream)
         })
+
       } else if(this.connection.addStream) {
-        this.connection.addStream(stream)
+        this.connection.addStream(this.localStream)
       }
+
     }
   }
 
