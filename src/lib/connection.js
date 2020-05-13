@@ -335,7 +335,7 @@ class Connection {
   }
 
   onError(err) {
-    throw new Error(err)
+    log('connection error', err)
   }
 
   onClose() {
