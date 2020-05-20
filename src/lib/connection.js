@@ -235,16 +235,18 @@ class Connection {
         // PeerConnection cannot create an answer in a state other than have-remote-offer or have-local-pranswer.
       })
     }).catch(err => {
-      this.log('error in connection offer', err.message)
+      //this.log('error in connection offer', err.message)
       this.reconnect()
     })
   }
 
   answer(sdp) {
-    this.connection.setRemoteDescription(new RTCSessionDescription(sdp)).catch(err => {
-      this.log('error in connection answer', err.message)
-      this.reconnect()
-    })
+    if(this.connection) {
+      this.connection.setRemoteDescription(new RTCSessionDescription(sdp)).catch(err => {
+        //this.log('error in connection answer', err.message)
+        this.reconnect()
+      })
+    }
   }
 
   ice(candidate) {
