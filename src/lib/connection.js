@@ -180,6 +180,11 @@ class Connection {
 
     this.log('signaling state changed to', this.connection.signalingState, 'for', this.clientId)
 
+    if(!this.localStream && this.network.stream) {
+      this.log('adding local stream to', this.clientId)
+      this.addStream(this.network.stream)
+    }
+
     if(this.connection.signalingState == 'stable') {
 
       this.sendCandidates()
@@ -192,11 +197,6 @@ class Connection {
 
     } else if(this.connection.signalingState == 'closed') {
       this.disconnect()
-    }
-
-    if(!this.localStream && this.network.stream) {
-      this.log('adding local stream to', this.clientId)
-      this.addStream(this.network.stream)
     }
 
   }
