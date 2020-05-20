@@ -31,6 +31,7 @@ class Connection {
     this.connectedAt = null
     this.audioContext = null
     this.audioLevel = 0
+    this.negotiationNeeded = false
     this.configure(config)
     this.bindLog()
   }
@@ -119,7 +120,10 @@ class Connection {
   onNegotiationNeeded() {
 
     this.log('negotiation needed with', this.clientId)
-    if(this.connection.signalingState != 'stable') return
+    if(this.connection.signalingState != 'stable') {
+      this.negotiationNeeded = true
+      return
+    }
 
     if(this.type == 'offer') {
       this.log('creating offer for', this.clientId)
@@ -180,6 +184,11 @@ class Connection {
 
       this.sendCandidates()
       this.addCandidates()
+
+      if(this.negotiationNeeded) {
+        this.negotiationNeeded = false
+        this.onNegotiationNeeded()
+      }
 
     } else if(this.connection.signalingState == 'closed') {
       this.disconnect()
