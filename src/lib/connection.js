@@ -379,7 +379,7 @@ class Connection {
 
       this.clearStream()
       this.localStream = stream
-      if(this.connection.addTrack) {
+      if(this.connection && this.connection.addTrack) {
 
         let transceivers = this.connection.getTransceivers()
         this.localStream.getTracks().forEach(track => {
