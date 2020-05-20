@@ -183,13 +183,11 @@ class Connection {
 
     } else if(this.connection.signalingState == 'closed') {
       this.disconnect()
-    } else {
+    }
 
-      if(!this.localStream) {
-        this.log('adding local stream to', this.clientId)
-        this.addStream(this.network.stream)
-      }
-
+    if(!this.localStream && this.network.stream) {
+      this.log('adding local stream to', this.clientId)
+      this.addStream(this.network.stream)
     }
 
   }
@@ -272,7 +270,7 @@ class Connection {
   }
 
   onTrack(event) {
-    this.log('received track from', this.clientId, event)
+    this.log('received track from', this.clientId)
 
     if(event.streams.length > 0) {
       this.stream = event.streams[0]

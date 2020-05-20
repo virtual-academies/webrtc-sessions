@@ -52,7 +52,7 @@ module.exports = {
     symlinks: false
   },
   devServer: {
-    port: 3000,
+    port: 5000,
     host: 'localhost',
     contentBase: './demo/react/src/assets',
     historyApiFallback: true,
