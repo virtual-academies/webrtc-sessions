@@ -52,7 +52,7 @@ export const attachAudioAnalyser = (stream, callback) => {
   if(stream.getAudioTracks().length == 0)
     return;
 
-  if(AudioContext)
+  if(!AudioContext)
     return;
 
   const audioContext = new AudioContext() // || window.webkitAudioContext

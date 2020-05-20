@@ -354,7 +354,7 @@ class Connection {
   }
 
   onError(err) {
-    this.log('connection error', err)
+    // this.log('connection error', err)
   }
 
   onClose() {
