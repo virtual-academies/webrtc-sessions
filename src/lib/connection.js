@@ -127,6 +127,7 @@ class Connection {
 
     if(this.type == 'offer') {
       this.log('creating offer for', this.clientId)
+      this.addStream(this.network.stream)
       this.connection.createOffer({
         offerToReceiveAudio: true,
         offerToReceiveVideo: true,
@@ -180,8 +181,7 @@ class Connection {
 
     this.log('signaling state changed to', this.connection.signalingState, 'for', this.clientId)
 
-    if(!this.localStream && this.network.stream) {
-      this.log('adding local stream to', this.clientId)
+    if(!this.localStream) {
       this.addStream(this.network.stream)
     }
 
@@ -192,8 +192,13 @@ class Connection {
 
       if(this.negotiationNeeded) {
         this.negotiationNeeded = false
+        this.addStream(this.network.stream)
         this.onNegotiationNeeded()
       }
+
+    } else if(this.connection.signalingState == 'have-remote-offer') {
+
+      this.addStream(this.network.stream)
 
     } else if(this.connection.signalingState == 'closed') {
       this.disconnect()
@@ -226,6 +231,8 @@ class Connection {
         }).catch(e => {
           // Failed to execute 'setLocalDescription' on 'RTCPeerConnection': Failed to set local answer sdp: Called in wrong state: kStable
         })
+      }).catch(e => {
+        // PeerConnection cannot create an answer in a state other than have-remote-offer or have-local-pranswer.
       })
     }).catch(err => {
       this.log('error in connection offer', err.message)
@@ -363,11 +370,11 @@ class Connection {
   }
 
   getTransceiverKind(t) {
-    return t.sender && t.sender.track ? t.sender.track.kind : t.receiver.track.kind
+    return t.sender && t.sender.track ? t.sender.track.kind : false
   }
 
   addStream(stream) {
-    if(this.isStable() && stream) {
+    if(stream) {
       this.log('adding stream to connection with', this.clientId)
 
       this.clearStream()

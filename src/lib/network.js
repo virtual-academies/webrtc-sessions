@@ -286,11 +286,12 @@ class Network {
   stopStreaming() {
     if(this.stream){
       this.stream.getTracks().forEach(track => track.stop())
-      Object.keys(this.connections).forEach(clientId => {
-        this.connections[clientId].clearStream()
-      })
       this.stream = null
     }
+
+    Object.keys(this.connections).forEach(clientId => {
+      this.connections[clientId].clearStream()
+    })
   }
 
   isStreaming() {
