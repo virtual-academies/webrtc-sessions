@@ -180,7 +180,7 @@ class Network {
     if(!this.connections[clientId]) {
       this.open(clientId, meta, timeStamp)
     } else {
-      this.connections[clientId].onNegotiationNeeded()
+      this.connections[clientId].peer()
     }
   }
 
@@ -274,7 +274,9 @@ class Network {
     if(!audio) this.toggleAudio()
 
     Object.keys(this.connections).forEach(clientId => {
-      this.connections[clientId].addStream(this.stream)
+      if(this.connections[clientId]) {
+        this.connections[clientId].addStream(this.stream)
+      }
     })
 
     this.trigger('stream', this.stream)

@@ -117,6 +117,11 @@ class Connection {
     this.connect()
   }
 
+  peer() {
+    this.addStream(this.network.stream)
+    this.onNegotiationNeeded()
+  }
+
   onNegotiationNeeded() {
 
     this.log('negotiation needed with', this.clientId)
@@ -127,7 +132,7 @@ class Connection {
 
     if(this.type == 'offer') {
       this.log('creating offer for', this.clientId)
-      this.addStream(this.network.stream)
+
       this.connection.createOffer({
         offerToReceiveAudio: true,
         offerToReceiveVideo: true,
@@ -192,6 +197,7 @@ class Connection {
 
       if(this.negotiationNeeded) {
         this.negotiationNeeded = false
+
         this.addStream(this.network.stream)
         this.onNegotiationNeeded()
       }
@@ -228,14 +234,17 @@ class Connection {
             type: 'answer',
             sdp: answer
           })
-        }).catch(e => {
+        }).catch(err => {
+          // console.log('error 1', err)
           // Failed to execute 'setLocalDescription' on 'RTCPeerConnection': Failed to set local answer sdp: Called in wrong state: kStable
         })
-      }).catch(e => {
+      }).catch(err => {
+        // console.log('error 2', err)
         // PeerConnection cannot create an answer in a state other than have-remote-offer or have-local-pranswer.
       })
     }).catch(err => {
-      //this.log('error in connection offer', err.message)
+      // console.log('error 3', err)
+      // this.log('error in connection offer', err.message)
       this.reconnect()
     })
   }
@@ -243,7 +252,7 @@ class Connection {
   answer(sdp) {
     if(this.connection) {
       this.connection.setRemoteDescription(new RTCSessionDescription(sdp)).catch(err => {
-        //this.log('error in connection answer', err.message)
+        // console.log('error 4', err)
         this.reconnect()
       })
     }
@@ -381,24 +390,26 @@ class Connection {
 
       this.clearStream()
       this.localStream = stream
-      if(this.connection && this.connection.addTrack) {
 
-        let transceivers = this.connection.getTransceivers()
-        this.localStream.getTracks().forEach(track => {
-          for(let i=0;i<transceivers.length;i++) {
-            if(this.getTransceiverKind(transceivers[i]) == track.kind) {
-              transceivers[i].sender.replaceTrack(track)
-              transceivers[i].direction = 'sendrecv'
-              return
+      if(this.connection) {
+        if(this.connection.addTrack) {
+
+          let transceivers = this.connection.getTransceivers()
+          this.localStream.getTracks().forEach(track => {
+            for(let i=0;i<transceivers.length;i++) {
+              if(this.getTransceiverKind(transceivers[i]) == track.kind) {
+                transceivers[i].sender.replaceTrack(track)
+                transceivers[i].direction = 'sendrecv'
+                return
+              }
             }
-          }
-          this.connection.addTrack(track, this.localStream)
-        })
+            this.connection.addTrack(track, this.localStream)
+          })
 
-      } else if(this.connection.addStream) {
-        this.connection.addStream(this.localStream)
+        } else if(this.connection.addStream) {
+          this.connection.addStream(this.localStream)
+        }
       }
-
     }
   }
 
