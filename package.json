@@ -1,6 +1,6 @@
 {
   "name": "webrtc-sessions",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "Pure JS WebRTC library for peer-to-peer (P2P) live streaming and data communication.",
   "main": "dist/index.js",
   "scripts": {
@@ -41,7 +41,7 @@
     "uuid": "^3.1.0",
     "webpack": "^4.38.0",
     "webpack-cli": "^3.3.6",
-    "webpack-dev-server": "^3.7.2"
+    "webpack-dev-server": "^3.11.0"
   },
   "babel": {
     "presets": [

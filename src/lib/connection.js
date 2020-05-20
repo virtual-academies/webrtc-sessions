@@ -32,6 +32,11 @@ class Connection {
     this.audioContext = null
     this.audioLevel = 0
     this.configure(config)
+    this.bindLog()
+  }
+
+  bindLog() {
+    this.log = log.bind(this, this.network.config.debug)
   }
 
   configure(config) {
@@ -78,7 +83,7 @@ class Connection {
 
   disconnect() {
 
-    log('disconnect', this.clientId)
+    this.log('disconnect', this.clientId)
 
     if(this.channel) {
       this.channel.close()
@@ -113,20 +118,20 @@ class Connection {
 
   onNegotiationNeeded() {
 
-    log('negotiation needed with', this.clientId)
+    this.log('negotiation needed with', this.clientId)
     if(this.connection.signalingState != 'stable') return
 
     if(this.type == 'offer') {
-      log('creating offer for', this.clientId)
+      this.log('creating offer for', this.clientId)
       this.connection.createOffer({
         offerToReceiveAudio: true,
         offerToReceiveVideo: true,
         iceRestart: true
       }).then(offer => {
         if(this.connection) {
-          log('setting local description for', this.clientId)
+          this.log('setting local description for', this.clientId)
           this.connection.setLocalDescription(offer).then(() => {
-            log('sending offer to', this.clientId)
+            this.log('sending offer to', this.clientId)
             this.network.send({
               peerId: this.clientId,
               timeStamp: this.network.timeStamp,
@@ -150,7 +155,7 @@ class Connection {
 
   onIceConnectionStateChange() {
     if(this.connection) {
-      log('ice connection state changed to', this.connection.iceConnectionState, 'for', this.clientId)
+      this.log('ice connection state changed to', this.connection.iceConnectionState, 'for', this.clientId)
       if(this.connection.iceConnectionState === 'connected') {
         this.status = 'connected'
       } else if(this.connection.iceConnectionState === 'disconnected') {
@@ -169,7 +174,7 @@ class Connection {
 
   onSignalingStateChange() {
 
-    log('signaling state changed to', this.connection.signalingState, 'for', this.clientId)
+    this.log('signaling state changed to', this.connection.signalingState, 'for', this.clientId)
 
     if(this.connection.signalingState == 'stable') {
 
@@ -181,7 +186,7 @@ class Connection {
     } else {
 
       if(!this.localStream) {
-        log('adding local stream to', this.clientId)
+        this.log('adding local stream to', this.clientId)
         this.addStream(this.network.stream)
       }
 
@@ -197,15 +202,15 @@ class Connection {
     if(this.connection.signalingState != 'stable') return
 
     this.connection.setRemoteDescription(new RTCSessionDescription(sdp)).then(() => {
-      log('creating answer for', this.clientId)
+      this.log('creating answer for', this.clientId)
       this.connection.createAnswer({
         offerToReceiveAudio: true,
         offerToReceiveVideo: true,
         iceRestart: true
       }).then(answer => {
-        log('setting local description for', this.clientId)
+        this.log('setting local description for', this.clientId)
         this.connection.setLocalDescription(answer).then(() => {
-          log('sending answer to', this.clientId)
+          this.log('sending answer to', this.clientId)
           this.network.send({
             peerId: this.clientId,
             type: 'answer',
@@ -216,14 +221,14 @@ class Connection {
         })
       })
     }).catch(err => {
-      log('error in connection offer', err.message)
+      this.log('error in connection offer', err.message)
       this.reconnect()
     })
   }
 
   answer(sdp) {
     this.connection.setRemoteDescription(new RTCSessionDescription(sdp)).catch(err => {
-      log('error in connection answer', err.message)
+      this.log('error in connection answer', err.message)
       this.reconnect()
     })
   }
@@ -267,7 +272,7 @@ class Connection {
   }
 
   onTrack(event) {
-    log('received track from', this.clientId, event)
+    this.log('received track from', this.clientId, event)
 
     if(event.streams.length > 0) {
       this.stream = event.streams[0]
@@ -287,7 +292,7 @@ class Connection {
 
   onAddStream(event) {
     if(!this.stream) {
-      log('received stream from', this.clientId)
+      this.log('received stream from', this.clientId)
       this.stream = event.stream
       this.stream.onremovetrack = this.removeStream.bind(this)
       this.audioContext = attachAudioAnalyser(this.stream, audioLevel => {
@@ -335,7 +340,7 @@ class Connection {
   }
 
   onError(err) {
-    log('connection error', err)
+    this.log('connection error', err)
   }
 
   onClose() {
@@ -356,7 +361,7 @@ class Connection {
 
   addStream(stream) {
     if(this.isStable() && stream) {
-      log('adding stream to connection with', this.clientId)
+      this.log('adding stream to connection with', this.clientId)
 
       this.clearStream()
       this.localStream = stream

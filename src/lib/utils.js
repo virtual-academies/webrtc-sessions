@@ -4,10 +4,10 @@
 /*
  * Generic logging function
  */
-export function log() {
-  if(process.env.NODE_ENV == 'development') {
+export function log(debug=false) {
+  if(debug) {
     /* eslint-disable-next-line no-console */
-    console.log(...arguments)
+    console.log(...Array.from(arguments).slice(1))
   }
 }
 

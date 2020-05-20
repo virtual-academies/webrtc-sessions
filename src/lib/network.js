@@ -7,7 +7,6 @@ import { log, getTime } from './utils'
 class Network {
 
   constructor(clientId, meta={}, config={}) {
-    log('session started as', clientId)
     this.clientId = clientId
     this.meta = meta || {}
     this.timeStamp = getTime()
@@ -20,11 +19,14 @@ class Network {
     this.audioDelay = 1000
     this.configure(config)
     this.bindUnload()
+    this.bindLog()
+    this.log('session started as', clientId)
   }
 
   configure(config) {
     this.config = Object.assign({
-      connection: {}
+      connection: {},
+      debug: false
     }, config)
   }
 
@@ -32,6 +34,10 @@ class Network {
     window.onunload = event => {
       this.disconnect()
     }
+  }
+
+  bindLog() {
+    this.log = log.bind(this, this.config.debug)
   }
 
   on(event, callback) {
@@ -122,7 +128,7 @@ class Network {
     if(message.clientId == this.clientId) return
     if(message.peerId && message.peerId != this.clientId) return
 
-    log('received', message.type, 'from', message.clientId)
+    this.log('received', message.type, 'from', message.clientId)
 
     switch (message.type) {
       case 'join': this.join(message); break
@@ -133,7 +139,7 @@ class Network {
       case 'rollback': this.rollback(message); break
       case 'leave': this.leave(message); break
       default:
-        log('unexpected message type', message.type)
+        this.log('unexpected message type', message.type)
         break
     }
   }
@@ -142,14 +148,14 @@ class Network {
    * Callback for socket onerror event
    */
   onError(err) {
-    log('socket connection error', err.message)
+    this.log('socket connection error', err.message)
   }
 
   /*
    * Callback for socket onclose event
    */
   onClose(event) {
-    log('socket connection closed')
+    this.log('socket connection closed')
   }
 
   open(clientId, meta, timeStamp) {
@@ -212,7 +218,7 @@ class Network {
     if(this.connections[clientId]) {
       this.connections[clientId].reconnect()
     } else {
-      log('opening to', type, clientId)
+      this.log('opening to', type, clientId)
       this.connections[clientId] = new Connection(this, clientId, meta, type, timeStamp, this.config.connection)
       this.connections[clientId].on('connect', this.onConnect.bind(this))
       this.connections[clientId].on('open', () => this.onReady(clientId))
@@ -225,7 +231,7 @@ class Network {
   }
 
   onConnect(clientId, meta) {
-    log('connected to', clientId, meta)
+    this.log('connected to', clientId, meta)
     //if(this.stream) this.connections[clientId].addStream(this.stream)
     this.trigger('connect', clientId, meta)
   }
@@ -235,12 +241,12 @@ class Network {
   }
 
   onDisconnect(clientId) {
-    log('disconnected from', clientId)
+    this.log('disconnected from', clientId)
     this.trigger('disconnect', clientId)
   }
 
   onFail(clientId) {
-    log('connection to', clientId, 'failed')
+    this.log('connection to', clientId, 'failed')
     this.trigger('fail', clientId)
   }
 
@@ -258,7 +264,7 @@ class Network {
     }).then(stream => {
       this.setStream(stream, video, audio)
     }).catch(err => {
-      log('error in startStreaming', err.message)
+      this.log('error in startStreaming', err.message)
     })
   }
 
