@@ -67,15 +67,21 @@ export const attachAudioAnalyser = (stream, callback) => {
   analyser.connect(processor)
   processor.connect(audioContext.destination)
 
+  let slow = 0;
+
   processor.onaudioprocess = () => {
     var array = new Uint8Array(analyser.frequencyBinCount)
     analyser.getByteFrequencyData(array)
     var values = 0
     var length = array.length
     for (var i = 0; i < length; i++) {
-      values += array[i]
+      values += array[i]*array[i]
     }
-    callback(values / length)
+
+    let current = Math.sqrt(values/length)
+    slow = 0.95 * slow + 0.05 * current;
+
+    callback(slow, current, array, analyser.frequencyBinCount)
   }
 
   audioContext.onstatechange = () => {
