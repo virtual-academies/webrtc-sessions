@@ -122,6 +122,10 @@ class Connection {
     this.onNegotiationNeeded()
   }
 
+  isStreaming() {
+    return !!this.localStream && this.localStream.active
+  }
+
   onNegotiationNeeded() {
 
     this.log('negotiation needed with', this.clientId)
@@ -134,9 +138,13 @@ class Connection {
     if(this.type == 'offer') {
       this.log('creating offer for', this.clientId)
 
+      let isStreaming = this.isStreaming()
+
+      this.log('offer to receive', isStreaming)
+
       this.connection.createOffer({
-        offerToReceiveAudio: true,
-        offerToReceiveVideo: true,
+        offerToReceiveAudio: isStreaming,
+        offerToReceiveVideo: isStreaming,
         iceRestart: true
       }).then(offer => {
         if(this.connection) {
@@ -222,9 +230,14 @@ class Connection {
 
     this.connection.setRemoteDescription(new RTCSessionDescription(sdp)).then(() => {
       this.log('creating answer for', this.clientId)
+
+      let isStreaming = this.isStreaming()
+
+      this.log('offer to receive', isStreaming)
+
       this.connection.createAnswer({
-        offerToReceiveAudio: true,
-        offerToReceiveVideo: true,
+        offerToReceiveAudio: isStreaming,
+        offerToReceiveVideo: isStreaming,
         iceRestart: true
       }).then(answer => {
         this.log('setting local description for', this.clientId)
