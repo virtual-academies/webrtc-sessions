@@ -16,7 +16,6 @@ class Network {
     this.events = {}
     this.connections = {}
     this.audioTimeout = null
-    this.audioDelay = 1000
     this.configure(config)
     this.bindUnload()
     this.bindLog()
@@ -26,6 +25,7 @@ class Network {
   configure(config) {
     this.config = Object.assign({
       connection: {},
+      audioDelay: 2000,
       debug: false
     }, config)
   }
@@ -292,6 +292,7 @@ class Network {
     }
 
     Object.keys(this.connections).forEach(clientId => {
+      this.connections[clientId].removeStream()
       this.connections[clientId].clearStream()
     })
   }
@@ -329,7 +330,7 @@ class Network {
     this.audioTimeout = setTimeout(() => {
       this.checkAudio()
       this.trackAudio()
-    }, this.audioDelay)
+    }, this.config.audioDelay)
   }
 
   onData(clientId, data) {

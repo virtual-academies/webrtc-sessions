@@ -125,7 +125,8 @@ class Connection {
   onNegotiationNeeded() {
 
     this.log('negotiation needed with', this.clientId)
-    if(this.connection.signalingState != 'stable') {
+
+    if(!this.connection || this.connection.signalingState != 'stable') {
       this.negotiationNeeded = true
       return
     }
