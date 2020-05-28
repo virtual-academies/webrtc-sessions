@@ -2,7 +2,7 @@
 'use strict'
 
 /* eslint-disable-next-line no-unused-vars */
-// import webrtcAdaptor from 'webrtc-adapter'
+import webrtcAdaptor from 'webrtc-adapter'
 
 import {
   log,
@@ -118,7 +118,9 @@ class Connection {
   }
 
   peer() {
-    this.addStream(this.network.stream)
+    if(this.network.stream) {
+      this.addStream(this.network.stream)
+    }
     //this.onNegotiationNeeded()
   }
 

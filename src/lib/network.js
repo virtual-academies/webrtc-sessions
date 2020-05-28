@@ -27,6 +27,8 @@ class Network {
       connection: {},
       audioDelay: 2000,
       openDataChannel: false,
+      forceOffer: false,
+      forceAnswer: false,
       debug: false
     }, config)
   }
@@ -160,10 +162,11 @@ class Network {
   }
 
   open(clientId, meta, timeStamp) {
-    if(clientId < this.clientId) {
-      this.openConnection(clientId, meta, 'answer', timeStamp)
-    } else {
+    if((this.config.forceOffer && !this.config.forceAnswer) ||
+      (!this.config.forceOffer && !this.config.forceAnswer && clientId > this.clientId)) {
       this.openConnection(clientId, meta, 'offer', timeStamp)
+    } else {
+      this.openConnection(clientId, meta, 'answer', timeStamp)
     }
   }
 
@@ -363,6 +366,13 @@ class Network {
         }
       }
     })
+  }
+
+  getClientStatus(clientId) {
+    if(this.connections[clientId]) {
+      return this.connections[clientId].status
+    }
+    return 'offline'
   }
 }
 
