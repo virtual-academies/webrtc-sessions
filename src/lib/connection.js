@@ -2,7 +2,7 @@
 'use strict'
 
 /* eslint-disable-next-line no-unused-vars */
-import webrtcAdaptor from 'webrtc-adapter'
+// import webrtcAdaptor from 'webrtc-adapter'
 
 import {
   log,
@@ -120,8 +120,9 @@ class Connection {
   peer() {
     if(this.network.stream) {
       this.addStream(this.network.stream)
+    } else {
+      this.onNegotiationNeeded()
     }
-    //this.onNegotiationNeeded()
   }
 
   isStreaming() {
@@ -302,7 +303,7 @@ class Connection {
     this.log('received track from', this.clientId)
 
     if(event.transceiver) {
-      if(this.stream) {
+      if(this.stream && this.stream.getTracks().length < 2) {
         this.stream.addTrack(event.transceiver.receiver.track)
       } else {
         this.stream = new MediaStream([ event.transceiver.receiver.track ])

@@ -52,10 +52,12 @@ export const attachAudioAnalyser = (stream, callback) => {
   if(stream.getAudioTracks().length == 0)
     return;
 
+  const AudioContext = window.AudioContext || window.webkitAudioContext || AudioContext
+
   if(!AudioContext)
     return;
 
-  const audioContext = new AudioContext() // || window.webkitAudioContext
+  const audioContext = new AudioContext()
   const analyser = audioContext.createAnalyser()
   const microphone = audioContext.createMediaStreamSource(stream)
   const processor = audioContext.createScriptProcessor(2048, 1, 1)
