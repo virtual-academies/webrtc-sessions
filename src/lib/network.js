@@ -27,6 +27,7 @@ class Network {
       connection: {},
       audioDelay: 2000,
       openDataChannel: false,
+      trackAudio: true,
       forceOffer: false,
       forceAnswer: false,
       debug: false

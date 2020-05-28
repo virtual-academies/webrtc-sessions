@@ -314,9 +314,11 @@ class Connection {
     }
 
     this.stream.onremovetrack = this.removeStream.bind(this)
-    this.audioContext = attachAudioAnalyser(this.stream, audioLevel => {
-      this.audioLevel = audioLevel
-    })
+    if(this.network.config.trackAudio) {
+      this.audioContext = attachAudioAnalyser(this.stream, audioLevel => {
+        this.audioLevel = audioLevel
+      })
+    }
     this.trigger('stream', this.clientId)
   }
 
@@ -325,9 +327,11 @@ class Connection {
       this.log('received stream from', this.clientId)
       this.stream = event.stream
       this.stream.onremovetrack = this.removeStream.bind(this)
-      this.audioContext = attachAudioAnalyser(this.stream, audioLevel => {
-        this.audioLevel = audioLevel
-      })
+      if(this.network.config.trackAudio) {
+        this.audioContext = attachAudioAnalyser(this.stream, audioLevel => {
+          this.audioLevel = audioLevel
+        })
+      }
       this.trigger('stream', this.clientId)
     }
   }
@@ -375,7 +379,7 @@ class Connection {
   }
 
   onClose() {
-    this.disconnect()
+    this.reconnect()
   }
 
   send(data) {
