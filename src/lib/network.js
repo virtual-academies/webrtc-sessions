@@ -26,6 +26,7 @@ class Network {
     this.config = Object.assign({
       connection: {},
       audioDelay: 2000,
+      openDataChannel: false,
       debug: false
     }, config)
   }

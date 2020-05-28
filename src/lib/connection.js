@@ -2,7 +2,7 @@
 'use strict'
 
 /* eslint-disable-next-line no-unused-vars */
-import webrtcAdaptor from 'webrtc-adapter'
+// import webrtcAdaptor from 'webrtc-adapter'
 
 import {
   log,
@@ -78,7 +78,7 @@ class Connection {
     this.connection.ondatachannel = this.onDataChannel.bind(this)
     this.connection.ontrack = this.onTrack.bind(this)
     this.connection.onaddstream = this.onAddStream.bind(this)
-    this.openDataChannel()
+    if(this.network.config.openDataChannel) this.openDataChannel()
     this.trigger('connect', this.clientId, this.meta)
   }
 
@@ -119,7 +119,7 @@ class Connection {
 
   peer() {
     this.addStream(this.network.stream)
-    this.onNegotiationNeeded()
+    //this.onNegotiationNeeded()
   }
 
   isStreaming() {
@@ -136,15 +136,12 @@ class Connection {
     }
 
     if(this.type == 'offer') {
+
       this.log('creating offer for', this.clientId)
 
-      let isStreaming = this.isStreaming()
-
-      this.log('offer to receive', isStreaming)
-
       this.connection.createOffer({
-        offerToReceiveAudio: isStreaming,
-        offerToReceiveVideo: isStreaming,
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: true,
         iceRestart: true
       }).then(offer => {
         if(this.connection) {
@@ -200,25 +197,18 @@ class Connection {
     }
 
     if(this.connection.signalingState == 'stable') {
-
       this.sendCandidates()
       this.addCandidates()
-
       if(this.negotiationNeeded) {
         this.negotiationNeeded = false
-
         this.addStream(this.network.stream)
         this.onNegotiationNeeded()
       }
-
     } else if(this.connection.signalingState == 'have-remote-offer') {
-
       this.addStream(this.network.stream)
-
     } else if(this.connection.signalingState == 'closed') {
       this.disconnect()
     }
-
   }
 
   offer(sdp) {
@@ -231,13 +221,9 @@ class Connection {
     this.connection.setRemoteDescription(new RTCSessionDescription(sdp)).then(() => {
       this.log('creating answer for', this.clientId)
 
-      let isStreaming = this.isStreaming()
-
-      this.log('offer to receive', isStreaming)
-
       this.connection.createAnswer({
-        offerToReceiveAudio: isStreaming,
-        offerToReceiveVideo: isStreaming,
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: true,
         iceRestart: true
       }).then(answer => {
         this.log('setting local description for', this.clientId)
@@ -313,13 +299,15 @@ class Connection {
   onTrack(event) {
     this.log('received track from', this.clientId)
 
-    if(event.streams.length > 0) {
+    if(event.transceiver) {
+      if(this.stream) {
+        this.stream.addTrack(event.transceiver.receiver.track)
+      } else {
+        this.stream = new MediaStream([ event.transceiver.receiver.track ])
+        event.transceiver.receiver.track.onmute = this.removeStream.bind(this)
+      }
+    } else if(event.streams.length > 0) {
       this.stream = event.streams[0]
-    } else if(this.stream) {
-      this.stream.addTrack(event.transceiver.receiver.track)
-    } else {
-      this.stream = new MediaStream([ event.transceiver.receiver.track ])
-      event.transceiver.receiver.track.onmute = this.removeStream.bind(this)
     }
 
     this.stream.onremovetrack = this.removeStream.bind(this)
@@ -380,6 +368,7 @@ class Connection {
 
   onError(err) {
     // this.log('connection error', err)
+    // transport can drop for unused dataChannel
   }
 
   onClose() {
@@ -396,6 +385,7 @@ class Connection {
 
   getTransceiverKind(t) {
     return t.sender && t.sender.track ? t.sender.track.kind : false
+      //t.receiver && t.receiver.track ? t.receiver.track.kind : false
   }
 
   addStream(stream) {
@@ -407,19 +397,19 @@ class Connection {
 
       if(this.connection) {
         if(this.connection.addTrack) {
-
           let transceivers = this.connection.getTransceivers()
           this.localStream.getTracks().forEach(track => {
             for(let i=0;i<transceivers.length;i++) {
               if(this.getTransceiverKind(transceivers[i]) == track.kind) {
-                transceivers[i].sender.replaceTrack(track)
-                transceivers[i].direction = 'sendrecv'
+                if(!transceivers[i].sender) {
+                  transceivers[i].direction = 'sendrecv'
+                  transceivers[i].sender.replaceTrack(track)
+                }
                 return
               }
             }
-            this.connection.addTrack(track, this.localStream)
+            this.connection.addTrack(track)
           })
-
         } else if(this.connection.addStream) {
           this.connection.addStream(this.localStream)
         }

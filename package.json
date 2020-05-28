@@ -16,7 +16,7 @@
   },
   "license": "CC-BY-NC-4.0",
   "dependencies": {
-    "webrtc-adapter": "^7.6.0"
+    "webrtc-adapter": "^7.6.1"
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",

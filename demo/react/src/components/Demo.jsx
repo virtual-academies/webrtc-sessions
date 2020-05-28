@@ -98,6 +98,7 @@ function Demo({ children }) {
           urls: [ 'stun:stun.l.google.com:19302' ]
         }]
       },
+      openDataChannel: true,
       debug: true
     })
   }

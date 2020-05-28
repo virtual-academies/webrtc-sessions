@@ -111,9 +111,11 @@ function Conference({ children, session, clients }) {
       })
 
       session.on('audio', (clientId, stream) => {
-        if(clientId != mainClientId) {
-          mainVideo.current.srcObject = stream
-          mainClientId = clientId
+        if(isStreaming) {
+          if(clientId != mainClientId) {
+            mainVideo.current.srcObject = stream
+            mainClientId = clientId
+          }
         }
       })
 
@@ -123,10 +125,12 @@ function Conference({ children, session, clients }) {
 
   useEffect(() => {
 
-    if(clients.length == 1) {
-      if(clients[0].stream) {
-        mainVideo.current.srcObject = clients[0].stream
-        mainClientId = clients[0].clientId
+    if(isStreaming) {
+      if(clients.length == 1) {
+        if(clients[0].stream) {
+          mainVideo.current.srcObject = clients[0].stream
+          mainClientId = clients[0].clientId
+        }
       }
     }
 
@@ -184,7 +188,7 @@ function Conference({ children, session, clients }) {
         </div>
       </div>
       <div className={styles.remotes}>
-        { clients.map((client, index) => {
+        { isStreaming && clients.map((client, index) => {
           if(client.stream) {
             return (
               <Video key={client.clientId} stream={client.stream} />
