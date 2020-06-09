@@ -8,6 +8,10 @@
 
 import 'react-native-get-random-values'
 import { v4 as uuidv4 } from 'uuid'
+
+/* eslint-disable-next-line no-unused-vars */
+// import webrtcAdaptor from 'webrtc-adapter'
+
 import Session from 'webrtc-sessions'
 
 import React, { Fragment, useState, useReducer, useEffect } from 'react'
