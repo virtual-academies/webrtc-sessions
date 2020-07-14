@@ -7,7 +7,8 @@
 import {
   log,
   getTime,
-  attachAudioAnalyser
+  attachAudioAnalyser,
+  detachAudioAnalyser
 } from './utils'
 
 // https://www.w3.org/TR/webrtc/#peer-to-peer-data-example
@@ -71,6 +72,7 @@ class Connection {
   connect() {
     this.status = 'connecting'
     this.connection = new RTCPeerConnection(this.config)
+    this.connection.clientId = this.clientId
     this.connection.onnegotiationneeded = this.onNegotiationNeeded.bind(this)
     this.connection.oniceconnectionstatechange = this.onIceConnectionStateChange.bind(this)
     this.connection.onicecandidate = this.onIceCandidate.bind(this)
@@ -95,6 +97,8 @@ class Connection {
       this.audioContext.close()
       this.audioContext = null
     }
+
+    detachAudioAnalyser(this.clientId)
 
     if(this.connection) {
       this.connection.onnegotiationneeded = null
@@ -315,7 +319,7 @@ class Connection {
 
     this.stream.onremovetrack = this.removeStream.bind(this)
     if(this.network.config.trackAudio) {
-      this.audioContext = attachAudioAnalyser(this.stream, audioLevel => {
+      this.audioContext = attachAudioAnalyser(this.connection, this.stream, 1000, audioLevel => {
         this.audioLevel = audioLevel
       })
     }
@@ -328,7 +332,7 @@ class Connection {
       this.stream = event.stream
       this.stream.onremovetrack = this.removeStream.bind(this)
       if(this.network.config.trackAudio) {
-        this.audioContext = attachAudioAnalyser(this.stream, audioLevel => {
+        this.audioContext = attachAudioAnalyser(this.connection, this.stream, audioLevel => {
           this.audioLevel = audioLevel
         })
       }

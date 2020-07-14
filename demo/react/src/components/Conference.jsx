@@ -35,7 +35,7 @@ function Video({ stream }) {
     video.current.srcObject = stream
   }, [ stream ])
 
-  useEffect(() => {
+  /*useEffect(() => {
 
     context2d = audio.current.getContext('2d')
     audioContext = attachAudioAnalyser(stream, (audioLevel, exactAudioLevel, dataArray, bufferLength) => {
@@ -47,7 +47,7 @@ function Video({ stream }) {
       context2d.fillStyle = 'rgba(0, 0, 0, 0)'
       context2d.fillRect(0, 0, audio.current.width, audio.current.height)
 
-      /*var barHeight
+      var barHeight
       var x = 0
       var barWidth = (audio.current.width / bufferLength) * 2.5
       for(var i = 0; i < bufferLength; i++) {
@@ -55,14 +55,14 @@ function Video({ stream }) {
         context2d.fillStyle = 'rgb(50,50,'+(barHeight+100)+')'
         context2d.fillRect(x, audio.current.height-barHeight/2, barWidth,barHeight/2)
         x += barWidth + 1
-      }*/
+      }
 
       context2d.fillStyle = 'rgb(50,50,'+(audioLevel+100)+')'
       context2d.fillRect(0, audio.current.height-audioLevel, audio.current.width, audioLevel)
 
     })
 
-  }, [])
+  }, [])*/
 
   return (
     <div className={styles.remote}>
@@ -87,6 +87,7 @@ function Conference({ children, session, clients }) {
   const [ enableVideo, toggleVideo ] = useState(true)
   const [ enableAudio, toggleAudio ] = useState(true)
   const [ peersHidden, hidePeers ] = useState(true)
+  const [ isSharing, toggleSharing ] = useState(true)
 
   useEffect(() => {
 
@@ -147,6 +148,20 @@ function Conference({ children, session, clients }) {
     }
   }
 
+  const toggleShare = () => {
+    if (!isSharing) {
+      session.startSharing(true, enableAudio)
+      toggleSharing(true)
+    } else {
+
+      // start streaming again.
+
+      localVideo.current.srcObject = null
+      session.stopSharing()
+      toggleSharing(false)
+    }
+  }
+
   const onChangeVideo = () => {
     if (isStreaming) {
       session.toggleVideo(!enableVideo)
@@ -180,6 +195,9 @@ function Conference({ children, session, clients }) {
           </span>
           <span className={styles.action}>
             <button className={enableAudio ? styles.audioOn : styles.audioOff} onClick={onChangeAudio} />
+          </span>
+          <span className={styles.action}>
+            <button className={isSharing ? styles.stopShare : styles.startShare} onClick={toggleShare} />
           </span>
           <span className={classNames(styles.action, styles.right)}>
             <button className={styles.users} onClick={() => hidePeers(!peersHidden)} />

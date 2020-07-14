@@ -25,7 +25,7 @@ class Network {
   configure(config) {
     this.config = Object.assign({
       connection: {},
-      audioDelay: 2000,
+      audioDelay: 3000,
       openDataChannel: false,
       trackAudio: true,
       forceOffer: false,
@@ -270,6 +270,23 @@ class Network {
       this.setStream(stream, video, audio)
     }).catch(err => {
       this.log('error in startStreaming', err.message)
+    })
+  }
+
+  // https://developer.mozilla.org/en-US/docs/Web/API/Screen_Capture_API/Using_Screen_Capture
+  startSharing(video=true, audio=true) {
+    if(!this.connected) {
+      this.reconnect()
+    }
+    navigator.mediaDevices.getDisplayMedia({
+      video: {
+        cursor: 'always'
+      },
+      audio: true
+    }).then(stream => {
+      this.setStream(stream, video, audio)
+    }).catch(err => {
+      this.log('error in startSharing', err.message)
     })
   }
 

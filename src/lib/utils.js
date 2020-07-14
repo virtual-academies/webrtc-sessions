@@ -44,15 +44,37 @@ export const chunkString = (str, length) => {
   return str.match(new RegExp('.{1,' + length + '}', 'g'))
 }
 
+let audioAnalyserIntervals = {};
+
+export const detachAudioAnalyser = (clientId) => {
+  clearInterval(audioAnalyserIntervals[clientId]);
+  audioAnalyserIntervals[clientId] = null;
+}
+
 /*
  * Attaches audio analyser to MediaStream
 */
-export const attachAudioAnalyser = (stream, callback) => {
+export const attachAudioAnalyser = (peerConnection, stream, interval, callback) => {
 
-  if(stream.getAudioTracks().length == 0)
+  let audioTracks = stream.getAudioTracks()
+  if(audioTracks.length == 0)
     return;
 
-  const AudioContext = window.AudioContext || window.webkitAudioContext || AudioContext
+  audioAnalyserIntervals[peerConnection.clientId] = setInterval(() => {
+    for(let i=0;i<audioTracks.length;i++)
+    {
+      peerConnection.getStats(audioTracks[0]).then(stats => {
+        stats.forEach(report => {
+          if(report.totalAudioEnergy)
+          {
+            callback(report.totalAudioEnergy)
+          }
+        });
+      });
+    }
+  }, interval);
+
+  /*const AudioContext = window.AudioContext || window.webkitAudioContext || AudioContext
 
   if(!AudioContext)
     return;
@@ -96,8 +118,10 @@ export const attachAudioAnalyser = (stream, callback) => {
     }
   }
 
-  return audioContext
+  return audioContext*/
 }
+
+
 
 export const disableVideoTrack = (stream) => {
   stream.getTracks().forEach(track => {
