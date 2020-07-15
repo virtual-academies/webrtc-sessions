@@ -117,6 +117,7 @@ class Connection {
   }
 
   reconnect() {
+    this.log('reconnect', this.clientId)
     this.disconnect()
     this.connect()
   }
@@ -182,7 +183,7 @@ class Connection {
       if(this.connection.iceConnectionState === 'connected') {
         this.status = 'connected'
       } else if(this.connection.iceConnectionState === 'disconnected') {
-        this.disconnect()
+        this.reconnect()
       } else if(this.connection.iceConnectionState === 'checking') {
         //this.reconnect()
       }
