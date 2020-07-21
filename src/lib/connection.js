@@ -120,6 +120,12 @@ class Connection {
     this.log('reconnect', this.clientId)
     this.disconnect()
     this.connect()
+
+    if(this.network.stream) {
+      this.addStream(this.network.stream)
+    } else {
+      this.onNegotiationNeeded()
+    }
   }
 
   peer() {
@@ -328,8 +334,9 @@ class Connection {
   }
 
   onAddStream(event) {
+    this.log('received stream from', this.clientId)
+
     if(!this.stream) {
-      this.log('received stream from', this.clientId)
       this.stream = event.stream
       this.stream.onremovetrack = this.removeStream.bind(this)
       if(this.network.config.trackAudio) {
@@ -400,8 +407,8 @@ class Connection {
       //t.receiver && t.receiver.track ? t.receiver.track.kind : false
   }
 
-  addStream(stream) {
-    if(stream) {
+  addStream(stream, force) {
+    if(stream && (force || this.type == 'offer' || this.connection.signalingState == 'have-remote-offer')) {
       this.log('adding stream to connection with', this.clientId)
 
       this.clearStream()
@@ -426,6 +433,10 @@ class Connection {
           this.connection.addStream(this.localStream)
         }
       }
+    } else if(stream && this.status == 'connected') {
+      this.addStream(stream, true)
+    } else if(!stream) {
+      this.clearStream()
     }
   }
 
