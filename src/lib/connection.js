@@ -433,7 +433,7 @@ class Connection {
           this.connection.addStream(this.localStream)
         }
       }
-    } else if(stream && this.status == 'connected') {
+    } else if(stream && (this.status == 'connected' || this.connection.signalingState == 'new')) {
       this.addStream(stream, true)
     } else if(!stream) {
       this.clearStream()
