@@ -237,7 +237,7 @@ class Network {
 
   onConnect(clientId, meta) {
     this.log('connected to', clientId, meta)
-    //if(this.stream) this.connections[clientId].addStream(this.stream)
+    if(this.stream) this.connections[clientId].addStream(this.stream)
     this.trigger('connect', clientId, meta)
   }
 
