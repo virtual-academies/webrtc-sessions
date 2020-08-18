@@ -96,21 +96,12 @@ function Demo({ children }) {
       id = hash;
     }
 
-    /*
-      const TURN_ENDPOINT = 'turn:34.200.250.118:3478'
-      const TURN_USERNAME = 'VATurnServer'
-      const TURN_PASSWORD = 'icHdu4shl3ZU8bQFEAkq'
-    */
-
     session = new Session(id, null, {
       connection: {
         iceServers: [{
-          /*urls: [ 'turn:numb.viagenie.ca' ],
-          username: 'rene@proversity.org',
-          credential: 'qZl@373yQ7'*/
-          urls: [ 'turn:34.200.250.118:3478' ],
-          username: 'VATurnServer',
-          credential: 'icHdu4shl3ZU8bQFEAkq'
+          urls: [ 'turn:numb.viagenie.ca' ],
+          username: 'xxxxxx@example.com',
+          credential: 'xxxxxxxx'
         },{
           urls: [ 'stun:stun.l.google.com:19302' ]
         }]
