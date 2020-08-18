@@ -80,20 +80,37 @@ function Demo({ children }) {
     socket.addEventListener('close', onClose)
 
     return () => {
-      socket.close()
-      session.disconnect()
+      //socket.close()
+      //session.disconnect()
       setLoaded(false)
     }
 
   }, [])
 
   if(!session) {
-    session = new Session(uuid(), null, {
+
+    let id = uuid()
+    let hash = window.location.hash.substr(1)
+    if(hash.length > 0)
+    {
+      id = hash;
+    }
+
+    /*
+      const TURN_ENDPOINT = 'turn:34.200.250.118:3478'
+      const TURN_USERNAME = 'VATurnServer'
+      const TURN_PASSWORD = 'icHdu4shl3ZU8bQFEAkq'
+    */
+
+    session = new Session(id, null, {
       connection: {
         iceServers: [{
-          urls: [ 'turn:numb.viagenie.ca' ],
+          /*urls: [ 'turn:numb.viagenie.ca' ],
           username: 'rene@proversity.org',
-          credential: 'qZl@373yQ7'
+          credential: 'qZl@373yQ7'*/
+          urls: [ 'turn:34.200.250.118:3478' ],
+          username: 'VATurnServer',
+          credential: 'icHdu4shl3ZU8bQFEAkq'
         },{
           urls: [ 'stun:stun.l.google.com:19302' ]
         }]

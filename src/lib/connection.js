@@ -33,6 +33,7 @@ class Connection {
     this.audioContext = null
     this.audioLevel = 0
     this.negotiationNeeded = false
+    this.streamAdded = false;
     this.configure(config)
     this.bindLog()
   }
@@ -207,7 +208,7 @@ class Connection {
     this.log('signaling state changed to', this.connection.signalingState, 'for', this.clientId)
 
     if(!this.localStream) {
-      this.addStream(this.network.stream)
+      this.addStream(this.network.stream, true)
     }
 
     if(this.connection.signalingState == 'stable') {
@@ -408,8 +409,12 @@ class Connection {
   }
 
   addStream(stream, force) {
+
+    this.log('attemping to add stream to connection with', this.clientId)
     if(stream && (force || this.type == 'offer' || this.connection.signalingState == 'have-remote-offer')) {
       this.log('adding stream to connection with', this.clientId)
+
+      this.streamAdded = true;
 
       this.clearStream()
       this.localStream = stream

@@ -16,6 +16,8 @@ import Peers from './Peers'
 import styles from '../assets/conference.css'
 
 let mainClientId = null
+let amIStreaming = false
+let amISharing = false
 
 function Video({ stream }) {
 
@@ -87,7 +89,7 @@ function Conference({ children, session, clients }) {
   const [ enableVideo, toggleVideo ] = useState(true)
   const [ enableAudio, toggleAudio ] = useState(true)
   const [ peersHidden, hidePeers ] = useState(true)
-  const [ isSharing, toggleSharing ] = useState(true)
+  const [ isSharing, toggleSharing ] = useState(false)
 
   useEffect(() => {
 
@@ -98,24 +100,32 @@ function Conference({ children, session, clients }) {
       })
 
       session.on('remote', (clientId, stream) => {
-        if(clientId == mainClientId && !stream) {
-          mainVideo.current.srcObject = null
-          mainClientId = null
+        if (clientId == mainClientId || mainClientId == null) {
+          if (stream && stream.active == true) {
+            if (setMainVideo(stream)) setMainClientId(clientId)
+          } else {
+            setMainVideo(null)
+            setMainClientId(null)
+          }
         }
       })
 
       session.on('disconnect', clientId => {
-        if(mainClientId == clientId) {
-          mainVideo.current.srcObject = null
-          mainClientId = null
+        if (mainClientId == clientId) {
+          setMainVideo(null)
+          setMainClientId(null)
+          findMainVideo()
         }
       })
 
+      session.on('inactive', () => {
+        toggleSharing(false)
+      })
+
       session.on('audio', (clientId, stream) => {
-        if(isStreaming) {
-          if(clientId != mainClientId) {
-            mainVideo.current.srcObject = stream
-            mainClientId = clientId
+        if (clientId != mainClientId) {
+          if (stream == null || stream.active == true) {
+            if (setMainVideo(stream)) setMainClientId(clientId)
           }
         }
       })
@@ -125,39 +135,70 @@ function Conference({ children, session, clients }) {
   }, [ session ])
 
   useEffect(() => {
+    amIStreaming = isStreaming
+    if (amIStreaming) {
+      session.startStreaming(enableVideo, enableAudio)
+    } else {
+      session.stopStreaming()
+    }
+  }, [isStreaming])
 
-    if(isStreaming) {
-      if(clients.length == 1) {
-        if(clients[0].stream) {
-          mainVideo.current.srcObject = clients[0].stream
-          mainClientId = clients[0].clientId
-        }
+  useEffect(() => {
+    amISharing = isSharing
+    if (amISharing) {
+      session.startSharing()
+    } else if(amIStreaming) {
+      session.stopSharing()
+      session.startStreaming(enableVideo, enableAudio)
+    }
+  }, [isSharing])
+
+  const setMainVideo = src => {
+    if (amIStreaming && (src == null || src.active == true)) {
+      if (mainVideo.current) {
+        mainVideo.current.srcObject = src
+        if (!src) mainVideo.current.removeAttribute('src')
+      }
+      return true
+    } else if(mainVideo && mainVideo.current) {
+      mainVideo.current.srcObject = null
+      mainVideo.current.removeAttribute('src')
+    }
+    return false
+  }
+
+  const setMainClientId = clientId => {
+    mainClientId = clientId
+  }
+
+  const findMainVideo = () => {
+    for (let i = 0; i < clients.length; i++) {
+      if (clients[i].stream) {
+        if (setMainVideo(clients[i].stream))
+          setMainClientId(clients[i].clientId)
+        break
       }
     }
+  }
 
-  }, [ clients ])
+  useEffect(() => {
+    if (!mainClientId) {
+      findMainVideo()
+    }
+  }, [clients])
 
   const toggleStream = () => {
     if (!isStreaming) {
-      session.startStreaming(enableVideo, enableAudio)
       toggleStreaming(true)
     } else {
-      localVideo.current.srcObject = null
-      session.stopStreaming()
       toggleStreaming(false)
     }
   }
 
   const toggleShare = () => {
-    if (!isSharing) {
-      session.startSharing(true, enableAudio)
+    if (!amISharing) {
       toggleSharing(true)
     } else {
-
-      // start streaming again.
-
-      localVideo.current.srcObject = null
-      session.stopSharing()
       toggleSharing(false)
     }
   }
@@ -196,9 +237,11 @@ function Conference({ children, session, clients }) {
           <span className={styles.action}>
             <button className={enableAudio ? styles.audioOn : styles.audioOff} onClick={onChangeAudio} />
           </span>
-          <span className={styles.action}>
-            <button className={isSharing ? styles.stopShare : styles.startShare} onClick={toggleShare} />
-          </span>
+          { isStreaming &&
+            <span className={styles.action}>
+              <button className={isSharing ? styles.stopShare : styles.startShare} onClick={toggleShare} />
+            </span>
+          }
           <span className={classNames(styles.action, styles.right)}>
             <button className={styles.users} onClick={() => hidePeers(!peersHidden)} />
             <Peers session={session} clients={clients} hidden={peersHidden} hidePeers={hidePeers} />

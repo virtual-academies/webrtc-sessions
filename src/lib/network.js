@@ -16,6 +16,7 @@ class Network {
     this.events = {}
     this.connections = {}
     this.audioTimeout = null
+    this.desktopId = null
     this.configure(config)
     this.bindUnload()
     this.bindLog()
@@ -81,6 +82,7 @@ class Network {
   connect(sendCallback) {
     this.sendCallback = sendCallback
     this.connected = true
+    this.timeStamp = getTime()
     return {
       onOpen: this.onOpen.bind(this),
       onError: this.onError.bind(this),
@@ -98,6 +100,7 @@ class Network {
     clearTimeout(this.audioTimeout)
     this.connected = false
     this.stream = null
+    this.timeStamp = null
     this.trigger('stream', null)
   }
 
@@ -259,6 +262,10 @@ class Network {
     this.trigger('remote', clientId, this.connections[clientId].stream)
   }
 
+  onInactive(){
+    this.trigger('inactive')
+  }
+
   startStreaming(video=true, audio=true) {
     if(!this.connected) {
       this.reconnect()
@@ -273,31 +280,47 @@ class Network {
     })
   }
 
+  /*
+  if (navigator.getDisplayMedia) {
+    return navigator.getDisplayMedia({video: true});
+  } else if (navigator.mediaDevices.getDisplayMedia) {
+    return navigator.mediaDevices.getDisplayMedia({video: true});
+  } else {
+    return navigator.mediaDevices.getUserMedia({video: {mediaSource: 'screen'}});
+  }
+  */
+
   // https://developer.mozilla.org/en-US/docs/Web/API/Screen_Capture_API/Using_Screen_Capture
-  startSharing(video=true, audio=true) {
+  startSharing() {
     if(!this.connected) {
       this.reconnect()
     }
+
     navigator.mediaDevices.getDisplayMedia({
       video: {
         cursor: 'always'
       },
       audio: true
     }).then(stream => {
-      this.setStream(stream, video, audio)
+      if(stream)
+      {
+        stream.oninactive = this.onInactive.bind(this)
+        this.setStream(stream, true, true)
+      }
     }).catch(err => {
-      this.log('error in startSharing', err.message)
+      this.onInactive()
     })
   }
 
   setStream(stream, video=true, audio=true) {
+
     this.stream = stream
     if(!video) this.toggleVideo()
     if(!audio) this.toggleAudio()
 
     Object.keys(this.connections).forEach(clientId => {
       if(this.connections[clientId]) {
-        this.connections[clientId].addStream(this.stream)
+        this.connections[clientId].addStream(this.stream, true)
       }
     })
 
@@ -317,6 +340,14 @@ class Network {
       this.connections[clientId].removeStream()
       this.connections[clientId].clearStream()
     })
+  }
+
+
+  stopSharing() {
+    if(this.stream){
+      this.stream.oninactive = null
+      this.stopStreaming()
+    }
   }
 
   isStreaming() {
