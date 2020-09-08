@@ -331,6 +331,7 @@ class Connection {
         this.audioLevel = audioLevel
       })
     }
+
     this.trigger('stream', this.clientId)
   }
 

@@ -147,9 +147,11 @@ function Conference({ children, session, clients }) {
     amISharing = isSharing
     if (amISharing) {
       session.startSharing()
-    } else if(amIStreaming) {
+    } else {
       session.stopSharing()
-      session.startStreaming(enableVideo, enableAudio)
+      if(amIStreaming) {
+        session.startStreaming(enableVideo, enableAudio)
+      }
     }
   }, [isSharing])
 

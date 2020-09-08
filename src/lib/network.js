@@ -304,6 +304,13 @@ class Network {
     }).then(stream => {
       if(stream)
       {
+        if(this.stream) {
+          this.stream.getVideoTracks().forEach(track => track.stop())
+          this.stream.getAudioTracks().forEach(track => {
+            stream.addTrack(track)
+          })
+        }
+
         stream.oninactive = this.onInactive.bind(this)
         this.setStream(stream, true, true)
       }
@@ -325,9 +332,38 @@ class Network {
     })
 
     this.trigger('stream', this.stream)
+
     if(this.stream) {
       this.trackAudio()
     }
+  }
+
+  getCombinedStream(clientId) {
+    let combinedStream = new MediaStream()
+    if(this.connections[clientId] && this.connections[clientId].stream) {
+      this.connections[clientId].stream.getVideoTracks().forEach(track => {
+        combinedStream.addTrack(track)
+      })
+    } else if(this.stream) {
+      this.stream.getVideoTracks().forEach(track => {
+        combinedStream.addTrack(track)
+      })
+    }
+
+    Object.values(this.connections).forEach(connection => {
+      if (connection.stream) {
+        connection.stream.getAudioTracks().forEach(track => {
+          combinedStream.addTrack(track)
+        })
+      }
+    })
+
+    if(this.stream) {
+      this.stream.getAudioTracks().forEach(track => {
+        combinedStream.addTrack(track)
+      })
+    }
+    return combinedStream
   }
 
   stopStreaming() {
@@ -355,15 +391,19 @@ class Network {
   }
 
   toggleVideo() {
-    this.stream.getVideoTracks().forEach(track => {
-      track.enabled = !track.enabled
-    })
+    if(this.stream) {
+      this.stream.getVideoTracks().forEach(track => {
+        track.enabled = !track.enabled
+      })
+    }
   }
 
   toggleAudio() {
-    this.stream.getAudioTracks().forEach(track => {
-      track.enabled = !track.enabled
-    })
+    if(this.stream) {
+      this.stream.getAudioTracks().forEach(track => {
+        track.enabled = !track.enabled
+      })
+    }
   }
 
   checkAudio() {
