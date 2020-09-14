@@ -363,6 +363,7 @@ class Network {
         combinedStream.addTrack(track)
       })
     }
+
     return combinedStream
   }
 
@@ -372,10 +373,16 @@ class Network {
       this.stream = null
     }
 
+    if(this.audioTimeout) {
+      clearTimeout(this.audioTimeout)
+    }
+
     Object.keys(this.connections).forEach(clientId => {
       this.connections[clientId].removeStream()
       this.connections[clientId].clearStream()
     })
+
+    this.send({ type: 'disconnect' })
   }
 
 
@@ -392,16 +399,28 @@ class Network {
 
   toggleVideo() {
     if(this.stream) {
+      let toggle = false
       this.stream.getVideoTracks().forEach(track => {
         track.enabled = !track.enabled
+        toggle = track.enabled
+      })
+      this.send({
+        type: 'video',
+        state: toggle
       })
     }
   }
 
   toggleAudio() {
     if(this.stream) {
+      let toggle = false
       this.stream.getAudioTracks().forEach(track => {
         track.enabled = !track.enabled
+        toggle = track.enabled
+      })
+      this.send({
+        type: 'sound',
+        state: toggle
       })
     }
   }

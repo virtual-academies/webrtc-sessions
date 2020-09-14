@@ -58,21 +58,22 @@ export const attachAudioAnalyser = (peerConnection, stream, interval, callback) 
 
   let audioTracks = stream.getAudioTracks()
   if(audioTracks.length == 0)
-    return;
+    return false
 
   audioAnalyserIntervals[peerConnection.clientId] = setInterval(() => {
     for(let i=0;i<audioTracks.length;i++)
     {
       peerConnection.getStats(audioTracks[0]).then(stats => {
         stats.forEach(report => {
-          if(report.totalAudioEnergy)
-          {
-            callback(report.totalAudioEnergy)
+          if(report.kind == 'audio' && report.audioLevel){
+            callback(report.audioLevel)
           }
         });
       });
     }
   }, interval);
+
+  return true
 
   /*const AudioContext = window.AudioContext || window.webkitAudioContext || AudioContext
 

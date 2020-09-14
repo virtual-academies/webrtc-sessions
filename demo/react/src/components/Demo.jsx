@@ -22,16 +22,33 @@ let socket = null
 let mainClientId = null
 
 const clientsReducer = (clients, action) => {
-  const index = clients.findIndex(val => val.clientId == action.clientId)
-  if(action.type == 'add' && index < 0) {
-    clients.push({ clientId: action.clientId, username: action.username })
-  } else if(action.type == 'stream' && index >= 0) {
-    clients[index].stream = action.stream
-  } else if(action.type == 'username' && index >= 0) {
-    clients[index].username = action.username
-  } else if(action.type == 'remove') {
-    clients.splice(clients.findIndex(val => val.clientId == action.clientId), 1)
+  let index = clients.findIndex(val => val.clientId == action.clientId)
+
+  if(index < 0) {
+    clients.push({
+      clientId: action.clientId,
+      username: action.username,
+      stream: null,
+      video: true,
+      sound: true
+    })
+    index = clients.findIndex(val => val.clientId == action.clientId)
   }
+
+  if(index >= 0){
+    if(action.type == 'stream') {
+      clients[index].stream = action.stream
+    } else if(action.type == 'username') {
+      clients[index].username = action.username
+    } else if(action.type == 'video') {
+      clients[index].video = action.state
+    } else if(action.type == 'sound') {
+      clients[index].sound = action.state
+    } else if(action.type == 'remove') {
+      clients.splice(index, 1)
+    }
+  }
+
   return [ ...clients ]
 }
 
@@ -50,8 +67,8 @@ function Demo({ children }) {
       dispatch({ type: 'add', clientId, username: meta.username })
     })
 
-    session.on('disconnect', clientId => {
-      dispatch({ type: 'remove', clientId })
+    session.on('disconnect', data => {
+      dispatch({ type: 'remove', clientId: data.clientId })
     })
 
     session.on('remote', (clientId, stream) => {
@@ -60,6 +77,14 @@ function Demo({ children }) {
 
     session.on('meta', (clientId, meta) => {
       dispatch({ type: 'username', clientId, username: meta.username })
+    })
+
+    session.on('video', (data) => {
+      dispatch({ type: 'video', clientId: data.clientId, state: data.state })
+    })
+
+    session.on('sound', (data) => {
+      dispatch({ type: 'sound', clientId: data.clientId, state: data.state })
     })
 
     socket = new WebSocket('ws://localhost:8080')
@@ -115,7 +140,7 @@ function Demo({ children }) {
     <Loader loading={!loaded}>
       <div className={styles.container}>
         <div className={styles.conference}>
-          <Conference session={session} clients={clients} />
+          <Conference session={session} socket={socket} clients={clients} />
         </div>
         <div className={styles.chat}>
           <Chat session={session} clients={clients} />

@@ -2,7 +2,7 @@
 'use strict'
 
 /* eslint-disable-next-line no-unused-vars */
-// import webrtcAdaptor from 'webrtc-adapter'
+import webrtcAdaptor from 'webrtc-adapter'
 
 import {
   log,
@@ -95,11 +95,9 @@ class Connection {
     }
 
     if(this.audioContext) {
-      this.audioContext.close()
-      this.audioContext = null
+      detachAudioAnalyser(this.clientId)
+      this.audioContext = false
     }
-
-    detachAudioAnalyser(this.clientId)
 
     if(this.connection) {
       this.connection.onnegotiationneeded = null
@@ -133,7 +131,7 @@ class Connection {
     if(this.network.stream) {
       this.addStream(this.network.stream)
     } else {
-      this.onNegotiationNeeded()
+      //this.onNegotiationNeeded()
     }
   }
 
@@ -319,16 +317,16 @@ class Connection {
         this.stream.addTrack(event.transceiver.receiver.track)
       } else {
         this.stream = new MediaStream([ event.transceiver.receiver.track ])
-        event.transceiver.receiver.track.onmute = this.removeStream.bind(this)
+        //event.transceiver.receiver.track.onended = this.removeStream.bind(this)
       }
     } else if(event.streams.length > 0) {
       this.stream = event.streams[0]
     }
 
     this.stream.onremovetrack = this.removeStream.bind(this)
-    if(this.network.config.trackAudio) {
+    if(this.network.config.trackAudio && !this.audioContext) {
       this.audioContext = attachAudioAnalyser(this.connection, this.stream, 1000, audioLevel => {
-        this.audioLevel = audioLevel
+        this.audioLevel = (this.audioLevel+audioLevel)/2
       })
     }
 
@@ -340,10 +338,10 @@ class Connection {
 
     if(!this.stream) {
       this.stream = event.stream
-      this.stream.onremovetrack = this.removeStream.bind(this)
-      if(this.network.config.trackAudio) {
-        this.audioContext = attachAudioAnalyser(this.connection, this.stream, audioLevel => {
-          this.audioLevel = audioLevel
+      //this.stream.onremovetrack = this.removeStream.bind(this)
+      if(this.network.config.trackAudio && !this.audioContext) {
+        this.audioContext = attachAudioAnalyser(this.connection, this.stream, 1000, audioLevel => {
+          this.audioLevel = (this.audioLevel+audioLevel)/2
         })
       }
       this.trigger('stream', this.clientId)
@@ -352,9 +350,10 @@ class Connection {
 
   removeStream() {
     if(this.stream) {
+      this.log('removing stream from', this.clientId)
       if(this.audioContext) {
-        this.audioContext.close()
-        this.audioContext = null
+        detachAudioAnalyser(this.clientId)
+        this.audioContext = false
       }
       this.stream.onremovetrack = null
       this.stream = null

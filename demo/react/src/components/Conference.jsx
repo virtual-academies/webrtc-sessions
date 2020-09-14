@@ -19,10 +19,10 @@ let mainClientId = null
 let amIStreaming = false
 let amISharing = false
 
-function Video({ stream }) {
+function Video({ stream, video, sound }) {
 
-  const video = useRef(null)
-  const audio = useRef(null)
+  const videoRef = useRef(null)
+  const audioRef = useRef(null)
 
   let context2d = null
   let audioContext = null
@@ -34,7 +34,7 @@ function Video({ stream }) {
     if(audioContext) {
       audioContext.close()
     }
-    video.current.srcObject = stream
+    videoRef.current.srcObject = stream
   }, [ stream ])
 
   /*useEffect(() => {
@@ -68,18 +68,28 @@ function Video({ stream }) {
 
   return (
     <div className={styles.remote}>
+      { !video &&
+        <span className={styles.videoDisabled}>
+          <span className={styles.videoOff} />
+        </span>
+      }
+      { !sound &&
+        <span className={styles.audioDisabled}>
+          <span className={styles.audioOff} />
+        </span>
+      }
       <video
-        ref={video}
+        ref={videoRef}
         playsInline
         autoPlay
         muted
       />
-      <canvas ref={audio} />
+      <canvas ref={audioRef} />
     </div>
   )
 }
 
-function Conference({ children, session, clients }) {
+function Conference({ children, session, socket, clients }) {
 
   const localVideo = useRef(null)
   const remoteVideos = useRef({})
@@ -110,11 +120,10 @@ function Conference({ children, session, clients }) {
         }
       })
 
-      session.on('disconnect', clientId => {
-        if (mainClientId == clientId) {
+      session.on('disconnect', data => {
+        if (mainClientId == data.clientId) {
           setMainVideo(null)
           setMainClientId(null)
-          findMainVideo()
         }
       })
 
@@ -175,17 +184,26 @@ function Conference({ children, session, clients }) {
 
   const findMainVideo = () => {
     for (let i = 0; i < clients.length; i++) {
-      if (clients[i].stream) {
+      if (clients[i].stream && clients[i].stream.active) {
         if (setMainVideo(clients[i].stream))
           setMainClientId(clients[i].clientId)
-        break
+        return
       }
     }
+    setMainVideo(null)
+    setMainClientId(null)
   }
 
   useEffect(() => {
     if (!mainClientId) {
       findMainVideo()
+    } else {
+      const index = clients.findIndex(val => val.clientId == mainClientId)
+      if(index >= 0) {
+        setMainVideo(clients[index].stream)
+      } else {
+        findMainVideo()
+      }
     }
   }, [clients])
 
@@ -254,7 +272,7 @@ function Conference({ children, session, clients }) {
         { isStreaming && clients.map((client, index) => {
           if(client.stream) {
             return (
-              <Video key={client.clientId} stream={client.stream} />
+              <Video key={client.clientId} stream={client.stream} video={client.video} sound={client.sound} />
             )
           }
         })}
