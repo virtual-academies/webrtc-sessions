@@ -101,7 +101,6 @@ class Network {
     this.connected = false
     this.stream = null
     this.timeStamp = null
-    this.events = {}
     this.trigger('stream', null)
   }
 
@@ -327,6 +326,7 @@ class Network {
     })
   }
 
+  // https://stackoverflow.com/questions/4429440/html5-display-video-inside-canvas
   /*startRecording() {
 
   }*/

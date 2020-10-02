@@ -111,7 +111,6 @@ class Connection {
       this.connection = null
     }
 
-    this.events = {}
     this.status = 'closed'
     this.trigger('disconnect')
   }
