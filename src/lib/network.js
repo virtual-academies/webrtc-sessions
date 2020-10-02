@@ -101,6 +101,7 @@ class Network {
     this.connected = false
     this.stream = null
     this.timeStamp = null
+    this.events = {}
     this.trigger('stream', null)
   }
 
@@ -145,6 +146,7 @@ class Network {
       case 'ice': this.ice(message); break
       case 'rollback': this.rollback(message); break
       case 'leave': this.leave(message); break
+      case 'disconnect': this.detach(message); break
       default:
         this.trigger(message.type, message)
         break
@@ -222,6 +224,12 @@ class Network {
     }
   }
 
+  detach({ clientId }) {
+    if(this.connections[clientId]) {
+      this.connections[clientId].disconnect()
+    }
+  }
+
   openConnection(clientId, meta, type, timeStamp) {
     if(this.connections[clientId]) {
       this.connections[clientId].reconnect()
@@ -250,7 +258,7 @@ class Network {
 
   onDisconnect(clientId) {
     this.log('disconnected from', clientId)
-    this.trigger('disconnect', clientId)
+    this.trigger('disconnect', { clientId })
   }
 
   onFail(clientId) {
@@ -319,6 +327,10 @@ class Network {
     })
   }
 
+  /*startRecording() {
+
+  }*/
+
   setStream(stream, video=true, audio=true) {
 
     this.stream = stream
@@ -339,6 +351,7 @@ class Network {
   }
 
   getCombinedStream(clientId) {
+
     let combinedStream = new MediaStream()
     if(this.connections[clientId] && this.connections[clientId].stream) {
       this.connections[clientId].stream.getVideoTracks().forEach(track => {
@@ -358,11 +371,11 @@ class Network {
       }
     })
 
-    if(this.stream) {
+    /*if(this.stream) {
       this.stream.getAudioTracks().forEach(track => {
         combinedStream.addTrack(track)
       })
-    }
+    }*/
 
     return combinedStream
   }
@@ -384,7 +397,6 @@ class Network {
 
     this.send({ type: 'disconnect' })
   }
-
 
   stopSharing() {
     if(this.stream){
