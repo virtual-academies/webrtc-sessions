@@ -270,6 +270,7 @@ class Network {
   }
 
   onInactive(){
+    this.log('share inactive')
     this.trigger('inactive')
   }
 
@@ -318,7 +319,12 @@ class Network {
           })
         }
 
+        stream.onended = this.onInactive.bind(this)
         stream.oninactive = this.onInactive.bind(this)
+        stream.getVideoTracks().forEach(track => {
+          track.onended = this.onInactive.bind(this)
+        })
+
         this.setStream(stream, true, true)
       }
     }).catch(err => {
