@@ -70,7 +70,7 @@ function Chat({ children, session, clients }) {
     if(clientId == session.clientId)
       return session.meta.username || 'me'
     const clientIndex = clients.findIndex(client => (client.clientId == clientId))
-    if(clients[clientIndex].username) {
+    if(clients[clientIndex] && clients[clientIndex].username) {
       return clients[clientIndex].username
     }
     return 'user'+(clientIndex+1)

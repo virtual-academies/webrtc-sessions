@@ -11,12 +11,14 @@ class Network {
     this.meta = meta || {}
     this.timeStamp = getTime()
     this.connected = false
+    this.status = 'pending'
     this.sendCallback = null
     this.stream = null
     this.events = {}
     this.connections = {}
     this.audioTimeout = null
     this.desktopId = null
+    this.pendingConnections = []
     this.configure(config)
     this.bindUnload()
     this.bindLog()
@@ -167,11 +169,16 @@ class Network {
   }
 
   open(clientId, meta, timeStamp) {
-    if((this.config.forceOffer && !this.config.forceAnswer) ||
-      (!this.config.forceOffer && !this.config.forceAnswer && clientId > this.clientId)) {
-      this.openConnection(clientId, meta, 'offer', timeStamp)
+    if(this.status == 'pending') {
+      this.status = 'opening'
+      if((this.config.forceOffer && !this.config.forceAnswer) ||
+        (!this.config.forceOffer && !this.config.forceAnswer && clientId > this.clientId)) {
+        this.openConnection(clientId, meta, 'offer', timeStamp)
+      } else {
+        this.openConnection(clientId, meta, 'answer', timeStamp)
+      }
     } else {
-      this.openConnection(clientId, meta, 'answer', timeStamp)
+      this.pendingConnections.push({ clientId, meta, timeStamp })
     }
   }
 
@@ -229,6 +236,13 @@ class Network {
     }
   }
 
+  processPendingConnections() {
+    if(this.pendingConnections.length > 0) {
+      this.open(...Object.values(this.pendingConnections[0]))
+      this.pendingConnections.shift()
+    }
+  }
+
   openConnection(clientId, meta, type, timeStamp) {
     if(this.connections[clientId]) {
       this.connections[clientId].reconnect()
@@ -249,6 +263,9 @@ class Network {
     this.log('connected to', clientId, meta)
     if(this.stream) this.connections[clientId].addStream(this.stream)
     this.trigger('connect', clientId, meta)
+
+    this.status = 'pending'
+    this.processPendingConnections()
   }
 
   onReady(clientId) {
