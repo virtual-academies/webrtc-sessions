@@ -112,6 +112,52 @@ User2: ice connection state changed to checking
 User2: ice connection state changed to connected
 ```
 
+### Session Config Options
+
+| Key             | Default | Description |
+| --------------- | ------- | ----------- |
+| connection      | {}      | See connection config options below
+| openDataChannel | false   | Toggle opening a dataChannel on the PeerConnection
+| trackAudio      | true    | Toggle tracking speaker based on volume
+| audioDelay      | 3000    | How often to switch speaker based on average volume
+| forceOffer      | false   | Forces offer state (for one-way broadcast streaming)
+| forceAnswer     | false   | Forces offer state (for one-way broadcast consumption)
+| debug           | false   | Toggle debug messages
+
+#### Connection Config Options
+
+| Key                  | Default                                      | Description                                 |
+| -------------------- | -------------------------------------------- | ------------------------------------------- |
+| iceServers           | [{ urls: ['stun:stun.l.google.com:19302'] }] | ICE server configuration                    |
+| iceTransportPolicy   | 'all'                                        | ICE transport policy                        |
+| bundlePolicy         | 'balanced'                                   | Bundle policy                               |
+| iceCandidatePoolSize | 0                                            | ICE candidate pool size                     |
+| sdpSemantics         | 'unified-plan'                               | Session Descriptor Protocol (SDP) semantics |
+| rtcpMuxPolicy        | 'require'                                    | RTCP mux policy                             |
+
+### Events
+
+```
+session.on('[EVENT]', (...) => {
+  // logic
+})
+```
+
+| Event      | Description | Args |
+| ---------- | ----------- | ---- |
+| ready      | on open connection to remote peer | clientId |
+| connect    | on connection with remote peer | clientId, meta{} |
+| fail       | unrecoverable failure (error) on remote peer connection | clientId |
+| disconnect | remote peer disconnects | { clientId } |
+| stream     | local stream is available | stream |
+| inactive   | on ending of local stream (without disconnect) ||
+| remote     | remote stream is available | clientId, stream |
+| audio      | on changes in remote stream audio analysis (who is speaking) | clientId, stream |
+| data       | data channel message from remote peer | clientId, message |
+| meta       | meta data (e.g. username) available for remote peer | clientId, meta |
+
+clientId refers to the ID designated to each remote peer
+
 ## License
 
 This package is licensed under Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0).<br/>
