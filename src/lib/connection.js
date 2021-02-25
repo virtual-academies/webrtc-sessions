@@ -182,15 +182,18 @@ class Connection {
     }
   }
 
+  // https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/iceConnectionState
   onIceConnectionStateChange() {
     if(this.connection) {
       this.log('ice connection state changed to', this.connection.iceConnectionState, 'for', this.clientId)
       if(this.connection.iceConnectionState === 'connected') {
         this.status = 'connected'
       } else if(this.connection.iceConnectionState === 'disconnected') {
-        this.reconnect()
+        // This is a less stringent test than "failed" and may trigger intermittently and resolve just as spontaneously
       } else if(this.connection.iceConnectionState === 'checking') {
-        //this.reconnect()
+        // The ICE agent has been given one or more remote candidates and is checking pairs of local and remote candidates against one another to try to find a compatible match
+      } else if(this.connection.iceConnectionState === 'failed') {
+        this.reconnect()
       }
     }
   }

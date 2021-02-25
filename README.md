@@ -112,7 +112,54 @@ User2: ice connection state changed to checking
 User2: ice connection state changed to connected
 ```
 
-### Session Config Options
+### Session
+
+```
+import Session from 'webrtc-sessions'
+
+session = new Session(USERID, { username: USERNAME }, {
+  connection: {
+    iceServers: [{
+      urls: [TURN_ENDPOINT],
+      username: TURN_USERNAME,
+      credential: TURN_PASSWORD
+    },{
+      urls: ['stun:stun.l.google.com:19302']
+    }],
+    iceTransportPolicy: 'all'
+  },
+  openDataChannel: true,
+  trackAudio: true,
+  audioDelay: 2000,
+  debug: true
+})
+
+session.on('connect', (clientId, meta) => {
+  // new remote peer
+})
+
+session.on('stream', stream => {
+  // process local stream
+})
+
+session.on('remote', stream => {
+  // process remote stream
+})
+
+session.on('audio', (clientId, stream) => {
+  // process new main speaker
+})
+
+session.startStreaming(bool:enableVideo, bool:enableAudio) // Start streaming locally
+session.toggleVideo(bool:enableVideo) // Toggle local video on/off
+session.toggleAudio(bool:enableVideo) // Toggle local audio on/off
+session.stopStreaming() // Stops streaming and close peerConnection
+
+session.startSharing() // Opens sharing dialog
+session.stopSharing() // Closes share and reverts to local stream
+```
+
+#### Config Options
 
 | Key             | Default | Description |
 | --------------- | ------- | ----------- |
@@ -124,7 +171,7 @@ User2: ice connection state changed to connected
 | forceAnswer     | false   | Forces offer state (for one-way broadcast consumption)
 | debug           | false   | Toggle debug messages
 
-#### Connection Config Options
+##### Connection Config Options
 
 | Key                  | Default                                      | Description                                 |
 | -------------------- | -------------------------------------------- | ------------------------------------------- |
@@ -146,7 +193,7 @@ session.on('[EVENT]', (...) => {
 | Event      | Description | Args |
 | ---------- | ----------- | ---- |
 | ready      | on open connection to remote peer | clientId |
-| connect    | on connection with remote peer | clientId, meta{} |
+| connect    | on connection with remote peer | clientId, meta{ username, ... } |
 | fail       | unrecoverable failure (error) on remote peer connection | clientId |
 | disconnect | remote peer disconnects | { clientId } |
 | stream     | local stream is available | stream |
@@ -155,6 +202,14 @@ session.on('[EVENT]', (...) => {
 | audio      | on changes in remote stream audio analysis (who is speaking) | clientId, stream |
 | data       | data channel message from remote peer | clientId, message |
 | meta       | meta data (e.g. username) available for remote peer | clientId, meta |
+
+#### Custom Event Examples
+
+| Event      | Description | Args |
+| ---------- | ----------- | ---- |
+| share      | remote sharescreen stream is available | clientId, stream |
+| video      | remote peer has toggled their video track | data{ clientId, state } |
+| sound      | remote peer has toggled their audio track | data{ clientId, state } |
 
 clientId refers to the ID designated to each remote peer
 
