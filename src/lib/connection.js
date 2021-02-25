@@ -190,6 +190,7 @@ class Connection {
         this.status = 'connected'
       } else if(this.connection.iceConnectionState === 'disconnected') {
         // This is a less stringent test than "failed" and may trigger intermittently and resolve just as spontaneously
+        this.onNegotiationNeeded()
       } else if(this.connection.iceConnectionState === 'checking') {
         // The ICE agent has been given one or more remote candidates and is checking pairs of local and remote candidates against one another to try to find a compatible match
       } else if(this.connection.iceConnectionState === 'failed') {
