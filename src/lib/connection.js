@@ -117,6 +117,7 @@ class Connection {
 
   reconnect() {
     this.log('reconnect', this.clientId)
+
     this.disconnect()
     this.connect()
 

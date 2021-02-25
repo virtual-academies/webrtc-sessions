@@ -336,7 +336,7 @@ class Network {
         })
 
         if(this.stream) {
-          this.stream.getVideoTracks().forEach(track => track.stop())
+          //this.stream.getVideoTracks().forEach(track => track.stop())
           this.stream.getAudioTracks().forEach(track => {
             stream.addTrack(track)
           })
@@ -404,7 +404,7 @@ class Network {
   }
 
   stopStreaming() {
-    if(this.stream){
+    /*if(this.stream){
       this.stream.getTracks().forEach(track => track.stop())
       this.stream = null
     }
@@ -418,7 +418,8 @@ class Network {
       this.connections[clientId].clearStream()
     })
 
-    this.send({ type: 'disconnect' })
+    this.send({ type: 'disconnect' })*/
+    this.disconnect()
   }
 
   stopSharing() {
