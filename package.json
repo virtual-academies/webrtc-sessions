@@ -1,6 +1,6 @@
 {
   "name": "webrtc-sessions",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "description": "Raw Javascript WebRTC library for peer-to-peer (P2P) live streaming and data communication.",
   "main": "dist/index.js",
   "scripts": {

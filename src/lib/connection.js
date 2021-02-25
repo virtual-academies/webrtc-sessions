@@ -261,8 +261,8 @@ class Connection {
       })
     }).catch(err => {
       // console.log('error 3', err)
-      // this.log('error in connection offer', err.message)
-      this.reconnect()
+      this.log('error in processing remote offer', err.message)
+      this.connection.setRemoteDescription({ type: 'rollback' })
     })
   }
 
