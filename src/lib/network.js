@@ -329,18 +329,18 @@ class Network {
     }).then(stream => {
       if(stream)
       {
+        stream.onended = this.onInactive.bind(this)
+        stream.oninactive = this.onInactive.bind(this)
+        stream.getVideoTracks().forEach(track => {
+          track.onended = this.onInactive.bind(this)
+        })
+
         if(this.stream) {
           this.stream.getVideoTracks().forEach(track => track.stop())
           this.stream.getAudioTracks().forEach(track => {
             stream.addTrack(track)
           })
         }
-
-        stream.onended = this.onInactive.bind(this)
-        stream.oninactive = this.onInactive.bind(this)
-        stream.getVideoTracks().forEach(track => {
-          track.onended = this.onInactive.bind(this)
-        })
 
         this.setStream(stream, true, true)
       }

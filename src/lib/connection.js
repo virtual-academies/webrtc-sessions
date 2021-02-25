@@ -252,25 +252,22 @@ class Connection {
             sdp: answer
           })
         }).catch(err => {
-          // console.log('error 1', err)
           // Failed to execute 'setLocalDescription' on 'RTCPeerConnection': Failed to set local answer sdp: Called in wrong state: kStable
         })
       }).catch(err => {
-        // console.log('error 2', err)
         // PeerConnection cannot create an answer in a state other than have-remote-offer or have-local-pranswer.
       })
     }).catch(err => {
-      // console.log('error 3', err)
-      this.log('error in processing remote offer', err.message)
-      this.connection.setRemoteDescription({ type: 'rollback' })
+      this.log('error in processing remote offer:', err.message)
+      //this.connection.setRemoteDescription({ type: 'rollback' })
     })
   }
 
   answer(sdp) {
     if(this.connection) {
       this.connection.setRemoteDescription(new RTCSessionDescription(sdp)).catch(err => {
-        // console.log('error 4', err)
-        this.reconnect()
+        this.log('error in processing remote answer:', err.message)
+        //this.connection.setRemoteDescription({ type: 'rollback' })
       })
     }
   }
