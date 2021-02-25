@@ -193,7 +193,7 @@ class Network {
   }
 
   peer({ clientId, timeStamp, meta }) {
-    if(!this.connections[clientId]) {
+    if(!this.connections[clientId] || !this.connections[clientId].connection) {
       this.open(clientId, meta, timeStamp)
     } else {
       this.connections[clientId].peer()
