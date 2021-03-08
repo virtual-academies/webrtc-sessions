@@ -350,19 +350,6 @@ class Connection {
     }
   }
 
-  removeStream() {
-    if(this.stream) {
-      this.log('removing stream from', this.clientId)
-      if(this.audioContext) {
-        detachAudioAnalyser(this.clientId)
-        this.audioContext = false
-      }
-      this.stream.onremovetrack = null
-      this.stream = null
-      this.trigger('stream', this.clientId)
-    }
-  }
-
   openDataChannel() {
     this.channel = this.connection.createDataChannel(this.clientId, {
       maxPacketLifeTime: 3000, // in milliseconds
@@ -444,6 +431,20 @@ class Connection {
       this.addStream(stream, true)
     } else if(!stream) {
       this.clearStream()
+    }
+  }
+
+  removeStream() {
+    if(this.stream) {
+      this.log('removing stream from', this.clientId)
+      if(this.audioContext) {
+        detachAudioAnalyser(this.clientId)
+        this.audioContext = false
+      }
+      this.stream.getTracks().forEach(track => track.stop())
+      this.stream.onremovetrack = null
+      this.stream = null
+      this.trigger('stream', this.clientId)
     }
   }
 

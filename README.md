@@ -213,6 +213,22 @@ session.on('[EVENT]', (...) => {
 
 clientId refers to the ID designated to each remote peer
 
+## Browsers
+
+https://webrtc.org/getting-started/testing
+
+### Chrome & Edge
+
+```
+--use-fake-device-for-media-stream
+```
+
+### Firefox
+
+```
+media.navigator.streams.fake
+```
+
 ## License
 
 This package is licensed under Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0).<br/>

@@ -1,7 +1,7 @@
 {
   "name": "webrtc-sessions",
-  "version": "0.1.17",
-  "description": "Raw Javascript WebRTC library for peer-to-peer (P2P) live streaming and data communication.",
+  "version": "0.1.18",
+  "description": "JS WebRTC library for peer-to-peer (P2P) live streaming and data communication.",
   "main": "dist/index.js",
   "scripts": {
     "start": "webpack-dev-server --progress --config ./demo/react/webpack.config.js --inline --open --watch --hot",

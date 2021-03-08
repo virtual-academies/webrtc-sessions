@@ -296,24 +296,20 @@ class Network {
       this.reconnect()
     }
     navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: true
+      audio: true,
+      video: {
+        optional: [
+          { width: { max: 1980 }},
+          { frameRate: { ideal: 30 }},
+          { facingMode: 'user' }
+        ]
+      }
     }).then(stream => {
       this.setStream(stream, video, audio)
     }).catch(err => {
       this.log('error in startStreaming', err.message)
     })
   }
-
-  /*
-  if (navigator.getDisplayMedia) {
-    return navigator.getDisplayMedia({video: true});
-  } else if (navigator.mediaDevices.getDisplayMedia) {
-    return navigator.mediaDevices.getDisplayMedia({video: true});
-  } else {
-    return navigator.mediaDevices.getUserMedia({video: {mediaSource: 'screen'}});
-  }
-  */
 
   // https://developer.mozilla.org/en-US/docs/Web/API/Screen_Capture_API/Using_Screen_Capture
   startSharing() {
@@ -336,7 +332,7 @@ class Network {
         })
 
         if(this.stream) {
-          //this.stream.getVideoTracks().forEach(track => track.stop())
+          this.stream.getVideoTracks().forEach(track => track.stop())
           this.stream.getAudioTracks().forEach(track => {
             stream.addTrack(track)
           })
@@ -404,7 +400,7 @@ class Network {
   }
 
   stopStreaming() {
-    /*if(this.stream){
+    if(this.stream){
       this.stream.getTracks().forEach(track => track.stop())
       this.stream = null
     }
@@ -418,7 +414,7 @@ class Network {
       this.connections[clientId].clearStream()
     })
 
-    this.send({ type: 'disconnect' })*/
+    this.send({ type: 'disconnect' })
     this.disconnect()
   }
 
