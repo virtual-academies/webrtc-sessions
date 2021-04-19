@@ -315,19 +315,20 @@ class Network {
   }
 
   // https://developer.mozilla.org/en-US/docs/Web/API/Screen_Capture_API/Using_Screen_Capture
-  startSharing() {
-    if(!this.connected) {
-      this.reconnect()
-    }
-
-    navigator.mediaDevices.getDisplayMedia({
-      video: {
-        cursor: 'always'
-      },
-      audio: true
-    }).then(stream => {
-      if(stream)
-      {
+  async startSharing() {
+    try {
+      if(!this.connected) {
+        this.reconnect()
+      }
+  
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          cursor: 'always'
+        },
+        audio: true
+      })
+      
+      if(stream){
         stream.onended = this.onInactive.bind(this)
         stream.oninactive = this.onInactive.bind(this)
         stream.getVideoTracks().forEach(track => {
@@ -336,16 +337,16 @@ class Network {
 
         if(this.stream) {
           this.stream.getVideoTracks().forEach(track => track.stop())
-          this.stream.getAudioTracks().forEach(track => {
-            stream.addTrack(track)
-          })
+          this.stream.getAudioTracks().forEach(track => stream.addTrack(track))
         }
 
         this.setStream(stream, true, true)
       }
-    }).catch(err => {
+      
+    } catch (error) {
       this.onInactive()
-    })
+      
+    }
   }
 
   // https://stackoverflow.com/questions/4429440/html5-display-video-inside-canvas
