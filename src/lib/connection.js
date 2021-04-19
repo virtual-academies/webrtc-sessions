@@ -393,8 +393,9 @@ class Connection {
   }
 
   getTransceiverKind(t) {
-    return t.sender && t.sender.track ? t.sender.track.kind : false
-      //t.receiver && t.receiver.track ? t.receiver.track.kind : false
+    // Per spec only there can only be two kinds "video" & "audio"
+    // usage of booleans are misleading
+    return t.sender && t.sender.track ? t.sender.track.kind : null
   }
 
   addStream(stream, force) {
