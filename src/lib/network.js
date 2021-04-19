@@ -291,24 +291,27 @@ class Network {
     this.trigger('inactive')
   }
 
-  startStreaming(video=true, audio=true) {
-    if(!this.connected) {
-      this.reconnect()
-    }
-    navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: {
-        optional: [
-          { width: { max: 1980 }},
-          { frameRate: { ideal: 30 }},
-          { facingMode: 'user' }
-        ]
+  // get webcam stream & call setStream
+  async startStreaming(video=true, audio=true) {
+    try {
+      if(!this.connected) {
+        this.reconnect()
       }
-    }).then(stream => {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: {
+          optional: [
+            { width: { max: 1980 }},
+            { frameRate: { ideal: 30 }},
+            { facingMode: 'user' }
+          ]
+        }
+      })
+  
       this.setStream(stream, video, audio)
-    }).catch(err => {
-      this.log('error in startStreaming', err.message)
-    })
+    } catch (error) {
+      this.log('error in startStreaming', error.message)
+    }
   }
 
   // https://developer.mozilla.org/en-US/docs/Web/API/Screen_Capture_API/Using_Screen_Capture
