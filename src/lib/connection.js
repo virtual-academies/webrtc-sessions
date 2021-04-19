@@ -149,7 +149,7 @@ class Connection {
       return
     }
 
-    if(this.type == 'offer') {
+    if(this.type === 'offer') {
 
       this.log('creating offer for', this.clientId)
 
@@ -214,7 +214,7 @@ class Connection {
       this.addStream(this.network.stream, true)
     }
 
-    if(this.connection.signalingState == 'stable') {
+    if(this.connection.signalingState === 'stable') {
       this.sendCandidates()
       this.addCandidates()
       if(this.negotiationNeeded) {
@@ -222,9 +222,9 @@ class Connection {
         this.addStream(this.network.stream)
         this.onNegotiationNeeded()
       }
-    } else if(this.connection.signalingState == 'have-remote-offer') {
+    } else if(this.connection.signalingState === 'have-remote-offer') {
       this.addStream(this.network.stream)
-    } else if(this.connection.signalingState == 'closed') {
+    } else if(this.connection.signalingState === 'closed') {
       this.disconnect()
     }
   }
@@ -275,7 +275,7 @@ class Connection {
 
   ice(candidate) {
     if(candidate && this.connection) {
-      if(this.connection.signalingState == 'stable') {
+      if(this.connection.signalingState === 'stable') {
         this.connection.addIceCandidate(candidate).catch(err => {
           this.remoteCandidates.push(candidate)
         })
@@ -385,8 +385,8 @@ class Connection {
   }
 
   send(data) {
-    if(this.status == 'open') {
-      if(this.channel.readyState == 'open') {
+    if(this.status === 'open') {
+      if(this.channel.readyState === 'open') {
         this.channel.send(JSON.stringify(data))
       }
     }
@@ -431,7 +431,7 @@ class Connection {
           this.connection.addStream(this.localStream)
         }
       }
-    } else if(stream && (this.status == 'connected' || this.connection.signalingState == 'new')) {
+    } else if(stream && (this.status === 'connected' || this.connection.signalingState === 'new')) {
       this.addStream(stream, true)
     } else if(!stream) {
       this.clearStream()
@@ -467,7 +467,7 @@ class Connection {
 
   isStable() {
     if(this.connection) {
-      return this.connection.signalingState == 'stable'
+      return this.connection.signalingState === 'stable'
     }
     return false
   }

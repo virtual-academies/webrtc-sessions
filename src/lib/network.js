@@ -63,7 +63,7 @@ class Network {
   }
 
   send(data) {
-    if(typeof(this.sendCallback) == 'function') {
+    if(typeof(this.sendCallback) === 'function') {
       this.sendCallback(JSON.stringify(Object.assign(data, {
         clientId: this.clientId
       })))
@@ -130,11 +130,11 @@ class Network {
    */
   onMessage(message) {
 
-    if(typeof(message) == 'string') {
+    if(typeof(message) === 'string') {
       message = JSON.parse(message)
     }
 
-    if(message.clientId == this.clientId) return
+    if(message.clientId === this.clientId) return
     if(message.peerId && message.peerId != this.clientId) return
 
     this.log('received', message.type, 'from', message.clientId)
@@ -169,7 +169,7 @@ class Network {
   }
 
   open(clientId, meta, timeStamp) {
-    if(this.status == 'pending') {
+    if(this.status === 'pending') {
       this.status = 'opening'
       if((this.config.forceOffer && !this.config.forceAnswer) ||
         (!this.config.forceOffer && !this.config.forceAnswer && clientId > this.clientId)) {
