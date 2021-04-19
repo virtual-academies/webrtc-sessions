@@ -355,8 +355,8 @@ class Network {
   }*/
 
   setStream(stream, video=true, audio=true) {
-
     this.stream = stream
+
     if(!video) this.toggleVideo()
     if(!audio) this.toggleAudio()
 
@@ -374,7 +374,6 @@ class Network {
   }
 
   getCombinedStream(clientId) {
-
     let combinedStream = new MediaStream()
     if(this.connections[clientId] && this.connections[clientId].stream) {
       this.connections[clientId].stream.getVideoTracks().forEach(track => {
@@ -482,9 +481,11 @@ class Network {
   }
 
   onData(clientId, data) {
-    switch(data.type) {
-      case 'meta': this.onMeta(data); break
-      default: this.trigger('data', data)
+    // clientId is not user, is this and was the switch intended for future implementation?
+    if(data.type === 'meta'){
+      this.onMeta(data)
+    } else {
+      this.trigger('data', data)
     }
   }
 
