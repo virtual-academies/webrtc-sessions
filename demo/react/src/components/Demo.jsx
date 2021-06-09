@@ -1,7 +1,7 @@
 
 'use strict'
 
-import uuid from 'uuid'
+import { v4 as uuidv4 } from 'uuid';
 
 import React, {
   useState,
@@ -114,7 +114,7 @@ function Demo({ children }) {
 
   if(!session) {
 
-    let id = uuid()
+    let id = uuidv4()
     let hash = window.location.hash.substr(1)
     if(hash.length > 0)
     {

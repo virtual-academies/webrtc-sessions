@@ -2,21 +2,18 @@
 'use strict'
 
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const ESLintPlugin = require('eslint-webpack-plugin');
 
 module.exports = {
   mode: 'development',
+  target: 'web',
+  devtool: 'eval-source-map',
   entry: [
     'babel-polyfill',
     './demo/react/src/index.js'
   ],
-  watch: true,
   module: {
     rules: [{
-      enforce: 'pre',
-      test: /\.(js|jsx)$/,
-      exclude: /node_modules/,
-      loader: 'eslint-loader'
-    },{
       test: /\.(js|jsx)$/,
       exclude: /(node_modules)/,
       loader: 'babel-loader'
@@ -44,7 +41,8 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './demo/react/src/index.html',
       inject: true
-    })
+    }),
+    new ESLintPlugin()
   ],
   resolve: {
     mainFields: ['browser', 'main', 'module'],
