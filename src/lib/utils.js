@@ -57,7 +57,7 @@ export const detachAudioAnalyser = (clientId) => {
 export const attachAudioAnalyser = (peerConnection, stream, interval, callback) => {
 
   let audioTracks = stream.getAudioTracks()
-  if(audioTracks.length == 0)
+  if(audioTracks.length === 0)
     return false
 
   audioAnalyserIntervals[peerConnection.clientId] = setInterval(() => {
@@ -65,7 +65,7 @@ export const attachAudioAnalyser = (peerConnection, stream, interval, callback) 
     {
       peerConnection.getStats(audioTracks[0]).then(stats => {
         stats.forEach(report => {
-          if(report.kind == 'audio' && report.audioLevel){
+          if(report.kind === 'audio' && report.audioLevel){
             callback(report.audioLevel)
           }
         });
@@ -126,7 +126,7 @@ export const attachAudioAnalyser = (peerConnection, stream, interval, callback) 
 
 export const disableVideoTrack = (stream) => {
   stream.getTracks().forEach(track => {
-    if (track.kind == 'video') {
+    if (track.kind === 'video') {
       track.enabled = !track.enabled
     }
   })
@@ -134,7 +134,7 @@ export const disableVideoTrack = (stream) => {
 
 export const disableAudioTrack = (stream) => {
   stream.getTracks().forEach(track => {
-    if (track.kind == 'audio') {
+    if (track.kind === 'audio') {
       track.enabled = !track.enabled
     }
   })

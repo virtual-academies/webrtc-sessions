@@ -149,7 +149,7 @@ class Connection {
       return
     }
 
-    if(this.type == 'offer') {
+    if(this.type === 'offer') {
 
       this.log('creating offer for', this.clientId)
 
@@ -214,7 +214,7 @@ class Connection {
       this.addStream(this.network.stream, true)
     }
 
-    if(this.connection.signalingState == 'stable') {
+    if(this.connection.signalingState === 'stable') {
       this.sendCandidates()
       this.addCandidates()
       if(this.negotiationNeeded) {
@@ -222,9 +222,9 @@ class Connection {
         this.addStream(this.network.stream)
         this.onNegotiationNeeded()
       }
-    } else if(this.connection.signalingState == 'have-remote-offer') {
+    } else if(this.connection.signalingState === 'have-remote-offer') {
       this.addStream(this.network.stream)
-    } else if(this.connection.signalingState == 'closed') {
+    } else if(this.connection.signalingState === 'closed') {
       this.disconnect()
     }
   }
@@ -275,7 +275,7 @@ class Connection {
 
   ice(candidate) {
     if(candidate && this.connection) {
-      if(this.connection.signalingState == 'stable') {
+      if(this.connection.signalingState === 'stable') {
         this.connection.addIceCandidate(candidate).catch(err => {
           this.remoteCandidates.push(candidate)
         })
@@ -385,22 +385,23 @@ class Connection {
   }
 
   send(data) {
-    if(this.status == 'open') {
-      if(this.channel.readyState == 'open') {
+    if(this.status === 'open') {
+      if(this.channel.readyState === 'open') {
         this.channel.send(JSON.stringify(data))
       }
     }
   }
 
   getTransceiverKind(t) {
-    return t.sender && t.sender.track ? t.sender.track.kind : false
-      //t.receiver && t.receiver.track ? t.receiver.track.kind : false
+    // Per spec only there can only be two kinds "video" & "audio"
+    // usage of booleans are misleading
+    return t.sender && t.sender.track ? t.sender.track.kind : null
   }
 
   addStream(stream, force) {
-
+    const hasOffer = this.type === 'offer' || this.connection.signalingState === 'have-remote-offer'
     this.log('attemping to add stream to connection with', this.clientId)
-    if(stream && (force || this.type == 'offer' || this.connection.signalingState == 'have-remote-offer')) {
+    if(stream && (force || hasOffer)) {
       this.log('adding stream to connection with', this.clientId)
 
       this.streamAdded = true;
@@ -412,22 +413,25 @@ class Connection {
         if(this.connection.addTrack) {
           let transceivers = this.connection.getTransceivers()
           this.localStream.getTracks().forEach(track => {
-            for(let i=0;i<transceivers.length;i++) {
-              if(this.getTransceiverKind(transceivers[i]) == track.kind) {
-                if(!transceivers[i].sender) {
-                  transceivers[i].direction = 'sendrecv'
-                  transceivers[i].sender.replaceTrack(track)
+            // TODO: Compartmentalize
+            // I refactored this for loop but I'm unsure how to test all branches
+            for(let transceiver of transceivers){
+              if(this.getTransceiverKind(transceiver) === track.kind) {
+                if(!transceiver.sender) {
+                  transceiver.direction = 'sendrecv'
+                  transceiver.sender.replaceTrack(track)
                 }
                 return
               }
             }
+
             this.connection.addTrack(track)
           })
         } else if(this.connection.addStream) {
           this.connection.addStream(this.localStream)
         }
       }
-    } else if(stream && (this.status == 'connected' || this.connection.signalingState == 'new')) {
+    } else if(stream && (this.status === 'connected' || this.connection.signalingState === 'new')) {
       this.addStream(stream, true)
     } else if(!stream) {
       this.clearStream()
@@ -463,7 +467,7 @@ class Connection {
 
   isStable() {
     if(this.connection) {
-      return this.connection.signalingState == 'stable'
+      return this.connection.signalingState === 'stable'
     }
     return false
   }

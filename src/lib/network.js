@@ -63,7 +63,7 @@ class Network {
   }
 
   send(data) {
-    if(typeof(this.sendCallback) == 'function') {
+    if(typeof(this.sendCallback) === 'function') {
       this.sendCallback(JSON.stringify(Object.assign(data, {
         clientId: this.clientId
       })))
@@ -130,11 +130,11 @@ class Network {
    */
   onMessage(message) {
 
-    if(typeof(message) == 'string') {
+    if(typeof(message) === 'string') {
       message = JSON.parse(message)
     }
 
-    if(message.clientId == this.clientId) return
+    if(message.clientId === this.clientId) return
     if(message.peerId && message.peerId != this.clientId) return
 
     this.log('received', message.type, 'from', message.clientId)
@@ -169,7 +169,7 @@ class Network {
   }
 
   open(clientId, meta, timeStamp) {
-    if(this.status == 'pending') {
+    if(this.status === 'pending') {
       this.status = 'opening'
       if((this.config.forceOffer && !this.config.forceAnswer) ||
         (!this.config.forceOffer && !this.config.forceAnswer && clientId > this.clientId)) {
@@ -291,40 +291,44 @@ class Network {
     this.trigger('inactive')
   }
 
-  startStreaming(video=true, audio=true) {
-    if(!this.connected) {
-      this.reconnect()
-    }
-    navigator.mediaDevices.getUserMedia({
-      audio: true,
-      video: {
-        optional: [
-          { width: { max: 1980 }},
-          { frameRate: { ideal: 30 }},
-          { facingMode: 'user' }
-        ]
+  // get webcam stream & call setStream
+  async startStreaming(video=true, audio=true) {
+    try {
+      if(!this.connected) {
+        this.reconnect()
       }
-    }).then(stream => {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: {
+          optional: [
+            { width: { max: 1980 }},
+            { frameRate: { ideal: 30 }},
+            { facingMode: 'user' }
+          ]
+        }
+      })
+  
       this.setStream(stream, video, audio)
-    }).catch(err => {
-      this.log('error in startStreaming', err.message)
-    })
+    } catch (error) {
+      this.log('error in startStreaming', error.message)
+    }
   }
 
   // https://developer.mozilla.org/en-US/docs/Web/API/Screen_Capture_API/Using_Screen_Capture
-  startSharing() {
-    if(!this.connected) {
-      this.reconnect()
-    }
-
-    navigator.mediaDevices.getDisplayMedia({
-      video: {
-        cursor: 'always'
-      },
-      audio: true
-    }).then(stream => {
-      if(stream)
-      {
+  async startSharing() {
+    try {
+      if(!this.connected) {
+        this.reconnect()
+      }
+  
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          cursor: 'always'
+        },
+        audio: true
+      })
+      
+      if(stream){
         stream.onended = this.onInactive.bind(this)
         stream.oninactive = this.onInactive.bind(this)
         stream.getVideoTracks().forEach(track => {
@@ -333,16 +337,16 @@ class Network {
 
         if(this.stream) {
           this.stream.getVideoTracks().forEach(track => track.stop())
-          this.stream.getAudioTracks().forEach(track => {
-            stream.addTrack(track)
-          })
+          this.stream.getAudioTracks().forEach(track => stream.addTrack(track))
         }
 
         this.setStream(stream, true, true)
       }
-    }).catch(err => {
+      
+    } catch (error) {
       this.onInactive()
-    })
+      
+    }
   }
 
   // https://stackoverflow.com/questions/4429440/html5-display-video-inside-canvas
@@ -351,8 +355,8 @@ class Network {
   }*/
 
   setStream(stream, video=true, audio=true) {
-
     this.stream = stream
+
     if(!video) this.toggleVideo()
     if(!audio) this.toggleAudio()
 
@@ -370,7 +374,6 @@ class Network {
   }
 
   getCombinedStream(clientId) {
-
     let combinedStream = new MediaStream()
     if(this.connections[clientId] && this.connections[clientId].stream) {
       this.connections[clientId].stream.getVideoTracks().forEach(track => {
@@ -478,9 +481,11 @@ class Network {
   }
 
   onData(clientId, data) {
-    switch(data.type) {
-      case 'meta': this.onMeta(data); break
-      default: this.trigger('data', data)
+    // clientId is not user, is this and was the switch intended for future implementation?
+    if(data.type === 'meta'){
+      this.onMeta(data)
+    } else {
+      this.trigger('data', data)
     }
   }
 
