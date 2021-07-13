@@ -112,13 +112,25 @@ function Demo({ children }) {
 
   }, [])
 
+  let id = uuidv4()
+
+  let hash = window.location.hash.substr(1)
+  if(hash.length > 0) {
+    id = hash;
+  }
+
   if(!session) {
 
-    let id = uuidv4()
-    let hash = window.location.hash.substr(1)
-    if(hash.length > 0)
-    {
-      id = hash;
+    let forceType = 'offer'
+    let maxConnections = 2
+    let enableRelay = false
+    let maxRelay = false
+
+    if(parseInt(id) > 1) {
+      forceType = 'answer'
+      maxConnections = false
+      enableRelay = true
+      maxRelay = 2
     }
 
     session = new Session(id, null, {
@@ -131,6 +143,10 @@ function Demo({ children }) {
           urls: [ 'stun:stun.l.google.com:19302' ]
         }]
       },
+      forceType: forceType,
+      maxConnections: maxConnections,
+      enableRelay: enableRelay,
+      maxRelay: maxRelay,
       openDataChannel: true,
       debug: true
     })
@@ -140,7 +156,7 @@ function Demo({ children }) {
     <Loader loading={!loaded}>
       <div className={styles.container}>
         <div className={styles.conference}>
-          <Conference session={session} socket={socket} clients={clients} />
+          <Conference id={id} session={session} socket={socket} clients={clients} />
         </div>
         <div className={styles.chat}>
           <Chat session={session} clients={clients} />

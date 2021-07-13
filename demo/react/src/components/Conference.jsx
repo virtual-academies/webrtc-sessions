@@ -19,7 +19,7 @@ let mainClientId = null
 let amIStreaming = false
 let amISharing = false
 
-function Video({ stream, video, sound }) {
+function Video({ id, stream, video, sound }) {
 
   const videoRef = useRef(null)
   const audioRef = useRef(null)
@@ -80,6 +80,7 @@ function Video({ stream, video, sound }) {
       }
       <video
         ref={videoRef}
+        id={id}
         playsInline
         autoPlay
         muted
@@ -89,7 +90,7 @@ function Video({ stream, video, sound }) {
   )
 }
 
-function Conference({ children, session, socket, clients }) {
+function Conference({ children, id, session, socket, clients }) {
 
   const localVideo = useRef(null)
   const remoteVideos = useRef({})
@@ -145,10 +146,14 @@ function Conference({ children, session, socket, clients }) {
 
   useEffect(() => {
     amIStreaming = isStreaming
-    if (amIStreaming) {
-      session.startStreaming(enableVideo, enableAudio)
+    if(id == 1) {
+      if (amIStreaming) {
+        session.startStreaming(enableVideo, enableAudio)
+      } else {
+        session.stopStreaming()
+      }
     } else {
-      session.stopStreaming()
+      session.negotiate()
     }
   }, [isStreaming])
 
@@ -272,7 +277,7 @@ function Conference({ children, session, socket, clients }) {
         { isStreaming && clients.map((client, index) => {
           if(client.stream) {
             return (
-              <Video key={client.clientId} stream={client.stream} video={client.video} sound={client.sound} />
+              <Video key={client.clientId} id={client.clientId} stream={client.stream} video={client.video} sound={client.sound} />
             )
           }
         })}

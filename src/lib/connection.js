@@ -34,6 +34,7 @@ class Connection {
     this.audioLevel = 0
     this.negotiationNeeded = false
     this.streamAdded = false;
+    this.relayChain = []
     this.configure(config)
     this.bindLog()
   }
@@ -80,7 +81,7 @@ class Connection {
     this.connection.onsignalingstatechange = this.onSignalingStateChange.bind(this)
     this.connection.ondatachannel = this.onDataChannel.bind(this)
     this.connection.ontrack = this.onTrack.bind(this)
-    this.connection.onaddstream = this.onAddStream.bind(this)
+    //this.connection.onaddstream = this.onAddStream.bind(this)
     if(this.network.config.openDataChannel) this.openDataChannel()
     this.trigger('connect', this.clientId, this.meta)
   }
@@ -115,25 +116,31 @@ class Connection {
     this.trigger('disconnect')
   }
 
+  reopenConnection(type, timeStamp) {
+    if(this.type != type) {
+      this.type = type
+      this.timeStamp = timeStamp
+      if(this.connection) {
+        this.connection.setRemoteDescription({ type: 'rollback' })
+      }
+    } else {
+      this.onNegotiationNeeded()
+    }
+  }
+
   reconnect() {
     this.log('reconnect', this.clientId)
-
     this.disconnect()
     this.connect()
-
     if(this.network.stream) {
-      this.addStream(this.network.stream)
+      this.addStream()
     } else {
       this.onNegotiationNeeded()
     }
   }
 
   peer() {
-    if(this.network.stream) {
-      this.addStream(this.network.stream)
-    } else {
-      //this.onNegotiationNeeded()
-    }
+    this.addStream(true)
   }
 
   isStreaming() {
@@ -174,10 +181,13 @@ class Connection {
         }
       })
     } else {
+      this.log('sending peer to', this.clientId)
       this.network.send({
         peerId: this.clientId,
         timeStamp: this.network.timeStamp,
         meta: this.network.meta,
+        forcedType: this.network.config.forceType,
+        relayChain: this.network.relayChain,
         type: 'peer'
       })
     }
@@ -211,22 +221,31 @@ class Connection {
     this.log('signaling state changed to', this.connection.signalingState, 'for', this.clientId)
 
     if(!this.localStream) {
-      this.addStream(this.network.stream, true)
+      this.addStream(true)
     }
 
-    if(this.connection.signalingState == 'stable') {
-      this.sendCandidates()
-      this.addCandidates()
-      if(this.negotiationNeeded) {
-        this.negotiationNeeded = false
-        this.addStream(this.network.stream)
-        this.onNegotiationNeeded()
+    if(this.connection) {
+      if(this.connection.signalingState == 'stable') {
+        this.sendCandidates()
+        this.addCandidates()
+        if(this.negotiationNeeded) {
+          this.negotiationNeeded = false
+          this.addStream()
+          this.onNegotiationNeeded()
+        }
+      } else if(this.connection.signalingState == 'have-remote-offer') {
+        this.addStream()
+      } else if(this.connection.signalingState == 'closed') {
+        this.disconnect()
       }
-    } else if(this.connection.signalingState == 'have-remote-offer') {
-      this.addStream(this.network.stream)
-    } else if(this.connection.signalingState == 'closed') {
-      this.disconnect()
     }
+  }
+
+  getSignalingState() {
+    if(this.connection) {
+      return this.connection.signalingState
+    }
+    return null
   }
 
   offer(sdp) {
@@ -260,7 +279,7 @@ class Connection {
       })
     }).catch(err => {
       this.log('error in processing remote offer:', err.message)
-      //this.connection.setRemoteDescription({ type: 'rollback' })
+      this.reconnect()
     })
   }
 
@@ -268,7 +287,7 @@ class Connection {
     if(this.connection) {
       this.connection.setRemoteDescription(new RTCSessionDescription(sdp)).catch(err => {
         this.log('error in processing remote answer:', err.message)
-        //this.connection.setRemoteDescription({ type: 'rollback' })
+        this.reconnect()
       })
     }
   }
@@ -326,7 +345,17 @@ class Connection {
     }
 
     this.stream.onremovetrack = this.removeStream.bind(this)
-    if(this.network.config.trackAudio && !this.audioContext) {
+
+    if(this.network.config.enableRelay) {
+
+      if(!this.network.relayChain.includes(this.clientId)) {
+        this.network.relayChain.push(this.clientId)
+      }
+
+      this.network.relayStream = this.stream
+      this.network.processPendingConnections()
+
+    } else if(this.network.config.trackAudio && !this.audioContext) {
       this.audioContext = attachAudioAnalyser(this.connection, this.stream, 1000, audioLevel => {
         this.audioLevel = (this.audioLevel+audioLevel)/2
       })
@@ -335,20 +364,21 @@ class Connection {
     this.trigger('stream', this.clientId)
   }
 
-  onAddStream(event) {
-    this.log('received stream from', this.clientId)
-
-    if(!this.stream) {
-      this.stream = event.stream
-      //this.stream.onremovetrack = this.removeStream.bind(this)
-      if(this.network.config.trackAudio && !this.audioContext) {
-        this.audioContext = attachAudioAnalyser(this.connection, this.stream, 1000, audioLevel => {
-          this.audioLevel = (this.audioLevel+audioLevel)/2
-        })
-      }
-      this.trigger('stream', this.clientId)
-    }
-  }
+  // This is for backwards compatibility with mobile browsers that do not support tracks @fail
+  //
+  // onAddStream(event) {
+  //   this.log('received stream from', this.clientId)
+  //   if(!this.stream) {
+  //     this.stream = event.stream
+  //     this.stream.onremovetrack = this.removeStream.bind(this)
+  //     if(this.network.config.trackAudio && !this.audioContext) {
+  //       this.audioContext = attachAudioAnalyser(this.connection, this.stream, 1000, audioLevel => {
+  //         this.audioLevel = (this.audioLevel+audioLevel)/2
+  //       })
+  //     }
+  //     this.trigger('stream', this.clientId)
+  //   }
+  // }
 
   openDataChannel() {
     this.channel = this.connection.createDataChannel(this.clientId, {
@@ -397,10 +427,24 @@ class Connection {
       //t.receiver && t.receiver.track ? t.receiver.track.kind : false
   }
 
-  addStream(stream, force) {
+  addStream(force) {
 
-    this.log('attemping to add stream to connection with', this.clientId)
+    if(this.network.relayChain.includes(this.clientId)) {
+      return
+    }
+
+    let stream = null
+
+    if(this.network.relayStream) {
+      stream = this.network.relayStream
+    } else if(this.network.stream) {
+      stream = this.network.stream
+    }
+
+    this.log('attemping to add stream to', this.clientId)
+
     if(stream && (force || this.type == 'offer' || this.connection.signalingState == 'have-remote-offer')) {
+
       this.log('adding stream to connection with', this.clientId)
 
       this.streamAdded = true;
@@ -410,6 +454,26 @@ class Connection {
 
       if(this.connection) {
         if(this.connection.addTrack) {
+
+          if(this.network.config.enableRelay) {
+
+            if(this.network.relayChain.length > 1) {
+              this.network.relayChain.slice(0, -1).forEach(relayClientId => {
+                this.network.kill(relayClientId)
+              })
+            }
+
+            if(!this.relayChain.includes(this.clientId)) {
+              if(this.relayChain.length <= this.network.config.maxRelay) {
+                this.send({ type: 'relay', relayChain: this.network.relayChain })
+                this.relayChain.push(this.clientId)
+              } else {
+                this.network.kill(this.clientId)
+                return
+              }
+            }
+          }
+
           let transceivers = this.connection.getTransceivers()
           this.localStream.getTracks().forEach(track => {
             for(let i=0;i<transceivers.length;i++) {
@@ -423,12 +487,15 @@ class Connection {
             }
             this.connection.addTrack(track)
           })
-        } else if(this.connection.addStream) {
-          this.connection.addStream(this.localStream)
         }
+
+        // Legacy for mobile - should probably remove
+        // else if(this.connection.addStream) {
+        //   this.connection.addStream(this.localStream)
+        // }
       }
     } else if(stream && (this.status == 'connected' || this.connection.signalingState == 'new')) {
-      this.addStream(stream, true)
+      this.addStream(true)
     } else if(!stream) {
       this.clearStream()
     }

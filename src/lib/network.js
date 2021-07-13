@@ -19,6 +19,9 @@ class Network {
     this.audioTimeout = null
     this.desktopId = null
     this.pendingConnections = []
+    this.connectionCount = 0
+    this.relayStream = null
+    this.relayChain = []
     this.configure(config)
     this.bindUnload()
     this.bindLog()
@@ -28,11 +31,13 @@ class Network {
   configure(config) {
     this.config = Object.assign({
       connection: {},
+      trackAudio: true,
       audioDelay: 3000,
       openDataChannel: false,
-      trackAudio: true,
-      forceOffer: false,
-      forceAnswer: false,
+      forceType: false,
+      maxConnections: false,
+      enableRelay: false,
+      maxRelay: false,
       debug: false
     }, config)
   }
@@ -98,6 +103,7 @@ class Network {
     Object.keys(this.connections).forEach(clientId => {
       this.connections[clientId].disconnect()
       delete this.connections[clientId]
+      this.connectionCount -= 1
     })
     clearTimeout(this.audioTimeout)
     this.connected = false
@@ -106,21 +112,31 @@ class Network {
     this.trigger('stream', null)
   }
 
+  kill(clientId) {
+    if(this.connections[clientId]) {
+      this.connections[clientId].disconnect()
+      delete this.connections[clientId]
+      this.connectionCount -= 1
+    }
+  }
+
   reconnect() {
-    this.send({
-      timeStamp: this.timeStamp,
-      meta: this.meta,
-      type: 'join'
-    })
+    this.sendJoin()
   }
 
   /*
    * Callback for socket onopen event
    */
   onOpen() {
+    this.sendJoin()
+  }
+
+  sendJoin() {
     this.send({
       timeStamp: this.timeStamp,
       meta: this.meta,
+      forcedType: this.config.forceType,
+      relayChain: this.relayChain,
       type: 'join'
     })
   }
@@ -168,39 +184,56 @@ class Network {
     this.log('socket connection closed')
   }
 
-  open(clientId, meta, timeStamp) {
+  open(clientId, meta, forcedType, relayChain, timeStamp) {
     if(this.status == 'pending') {
+
       this.status = 'opening'
-      if((this.config.forceOffer && !this.config.forceAnswer) ||
-        (!this.config.forceOffer && !this.config.forceAnswer && clientId > this.clientId)) {
-        this.openConnection(clientId, meta, 'offer', timeStamp)
-      } else {
-        this.openConnection(clientId, meta, 'answer', timeStamp)
+
+      let type = 'offer'
+      if(this.config.forceType == 'answer') {
+        if(forcedType == 'offer') {
+          type = 'answer'
+        } else if(relayChain.length > 0) {
+          type = 'answer'
+        } else if(timeStamp < this.timeStamp) {
+          type = 'answer'
+        } else if(timeStamp == this.timeStamp && clientId < this.clientId) {
+          type = 'answer'
+        }
+      } else if(clientId < this.clientId) {
+        type = 'answer'
       }
+
+      this.openConnection(clientId, meta, type, relayChain, timeStamp)
+
     } else {
-      this.pendingConnections.push({ clientId, meta, timeStamp })
+
+      this.pendingConnections.push({ clientId, meta, forcedType, relayChain, timeStamp })
+
     }
   }
 
-  join({ clientId, timeStamp, meta }) {
-    this.open(clientId, meta, timeStamp)
+  join({ clientId, timeStamp, forcedType, relayChain, meta }) {
+    this.open(clientId, meta, forcedType, relayChain, timeStamp)
     this.send({
       peerId: clientId,
       timeStamp: this.timeStamp,
       meta: this.meta,
+      forcedType: this.config.forceType,
+      relayChain: this.relayChain,
       type: 'peer'
     })
   }
 
-  peer({ clientId, timeStamp, meta }) {
+  peer({ clientId, timeStamp, forcedType, relayChain, meta }) {
     if(!this.connections[clientId] || !this.connections[clientId].connection) {
-      this.open(clientId, meta, timeStamp)
+      this.open(clientId, meta, forcedType, relayChain, timeStamp)
     } else {
       this.connections[clientId].peer()
     }
   }
 
-  offer({ clientId, sdp, timeStamp }) {
+  offer({ clientId, sdp }) {
     if(this.connections[clientId]) {
       this.connections[clientId].offer(sdp)
     }
@@ -236,17 +269,34 @@ class Network {
     }
   }
 
+  negotiate() {
+    Object.keys(this.connections).forEach(clientId => {
+      if(this.connections[clientId]) {
+        this.connections[clientId].onNegotiationNeeded()
+      }
+    })
+  }
+
   processPendingConnections() {
     if(this.pendingConnections.length > 0) {
-      this.open(...Object.values(this.pendingConnections[0]))
-      this.pendingConnections.shift()
+      this.open(...Object.values(this.pendingConnections.shift()))
     }
   }
 
-  openConnection(clientId, meta, type, timeStamp) {
+  openConnection(clientId, meta, type, relayChain, timeStamp) {
+
+    if(this.config.enableRelay) {
+      if(this.relayChain.length == 0) {
+        this.relayChain = relayChain
+      } else if(this.relayChain.filter(x => relayChain.includes(x)).length > 0) {
+        this.kill(clientId)
+        return
+      }
+    }
+
     if(this.connections[clientId]) {
-      this.connections[clientId].reconnect()
-    } else {
+      this.connections[clientId].reopenConnection(type, timeStamp)
+    } else if(!this.config.maxConnections || this.connectionCount < this.config.maxConnections) {
       this.log('opening to', type, clientId)
       this.connections[clientId] = new Connection(this, clientId, meta, type, timeStamp, this.config.connection)
       this.connections[clientId].on('connect', this.onConnect.bind(this))
@@ -256,15 +306,30 @@ class Network {
       this.connections[clientId].on('stream', () => this.onStream(clientId))
       this.connections[clientId].on('data', this.onData.bind(this))
       this.connections[clientId].connect()
+      this.connectionCount += 1
+    } else {
+      this.pendingConnections.push({ clientId, meta, forcedType: type, relayChain, timeStamp })
     }
   }
 
   onConnect(clientId, meta) {
-    this.log('connected to', clientId, meta)
-    if(this.stream) this.connections[clientId].addStream(this.stream)
-    this.trigger('connect', clientId, meta)
+    this.log('connected to', clientId)
+
+    if(this.connections[clientId]) {
+      if(this.config.enableRelay) {
+        if(this.relayStream && this.connections[clientId].type == 'offer') {
+          this.log('attempting to relay stream from 1 to', clientId)
+          this.connections[clientId].addStream(true)
+        }
+      } else if(this.stream) {
+        this.connections[clientId].addStream()
+      }
+
+      this.trigger('connect', clientId, meta)
+    }
 
     this.status = 'pending'
+
     this.processPendingConnections()
   }
 
@@ -358,7 +423,7 @@ class Network {
 
     Object.keys(this.connections).forEach(clientId => {
       if(this.connections[clientId]) {
-        this.connections[clientId].addStream(this.stream, true)
+        this.connections[clientId].addStream(true)
       }
     })
 
@@ -480,6 +545,7 @@ class Network {
   onData(clientId, data) {
     switch(data.type) {
       case 'meta': this.onMeta(data); break
+      case 'relay': this.onRelay(clientId, data); break
       default: this.trigger('data', data)
     }
   }
@@ -497,6 +563,27 @@ class Network {
     this.trigger('meta', clientId, meta)
   }
 
+  onRelay(clientId, { relayChain }) {
+
+    if(this.relayChain.length > 0 || this.relayChain.filter(x => relayChain.includes(x)).length > 0) {
+      this.kill(clientId)
+      return
+    }
+
+    this.relayChain = relayChain
+
+    this.relayChain.forEach(relayClientId => {
+      if(this.connections[relayClientId]) {
+        this.connections[relayClientId].disconnect()
+        delete this.connections[relayClientId]
+        this.connectionCount -= 1
+      }
+    })
+
+    relayChain.push(clientId)
+
+  }
+
   getClients() {
     return Object.keys(this.connections).map(clientId => {
       if(this.connections[clientId].status != 'closed') {
@@ -506,6 +593,10 @@ class Network {
         }
       }
     })
+  }
+
+  getClientCount() {
+    return Object.keys(this.connections).length
   }
 
   getClientStatus(clientId) {
